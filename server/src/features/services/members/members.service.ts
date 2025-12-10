@@ -1,4 +1,4 @@
-import { MembersRepository } from "../../../infraestructure/repositories/members/members.repository";
+import { MembersRepository } from "../../../infrastructure/repositories/members/members.repository";
 import { Member } from "../../../domain/entities/member";
 
 export class MembersService {

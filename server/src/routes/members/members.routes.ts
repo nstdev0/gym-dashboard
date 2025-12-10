@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { MembersController } from "../../interface-adapters/controllers/members/members.controller";
 import { MembersService } from "../../features/services/members/members.service";
-import { MembersRepository } from "../../infraestructure/repositories/members/members.repository";
+import { MembersRepository } from "../../infrastructure/repositories/members/members.repository";
 
 const membersRepository = new MembersRepository();
 const membersService = new MembersService(membersRepository);
