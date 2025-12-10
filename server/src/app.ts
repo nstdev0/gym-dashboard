@@ -31,9 +31,9 @@ app.get("/test", (req, res) => {
 })
 
 // Routes
-import getMembersRouter from "./routes/members/get-members.route";
+import membersRouter from "./routes/members/members.routes";
 
-app.use("/api/members", getMembersRouter);
+app.use("/api/members", membersRouter);
 
 // 404 Not found route
 app.use((req, res) => {
