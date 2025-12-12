@@ -5,9 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
-  engineType = "library"
 }
 
 datasource db {
@@ -26,32 +25,32 @@ enum DocType {
   CE
 }
 
-
 // Definición de la tabla 'Member'
 model Member {
-  id          Int      @id @default(autoincrement())
-  
+  id Int @id @default(autoincrement())
+
   // Datos Personales
-  firstName   String   // nombre
-  lastName    String   // apellido
-  gender      Gender   // genero (Podrías usar un Enum aquí)
-  birthDate   DateTime // nacimiento
-  
+  firstName String // nombre
+  lastName  String // apellido
+  gender    Gender // genero (Podrías usar un Enum aquí)
+  birthDate DateTime // nacimiento
+
   // Datos Físicos
-  height      Float    // talla (ej: 1.75 o 175)
-  weight      Float    // peso (ej: 75.5)
-  
+  height Float // talla (ej: 1.75 o 175)
+  weight Float // peso (ej: 75.5)
+
   // Identificación
-  docType     DocType   // tipo de documento (DNI, Pasaporte, CE)
-  docNumber   String   @unique // numero documento (Unique para que no se repita)
-  
+  docType   DocType // tipo de documento (DNI, Pasaporte, CE)
+  docNumber String // numero documento
+
   // Contacto
-  phoneNumber String   // numero de celular
+  phoneNumber String // numero de celular
 
   // Auditoría (Muy útil tenerlo siempre)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([docType, docNumber])
   // Opcional: Si quieres que la tabla en la BD se llame 'members' (plural)
   @@map("members")
 }

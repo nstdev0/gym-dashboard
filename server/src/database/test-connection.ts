@@ -1,21 +1,21 @@
-import { prisma } from "./db";
+// import { db } from "./db";
 
-export const testConnection = async () => {
-  try {
-    // Intentamos conectar explícitamente (opcional, pero útil para debug)
-    await prisma.$connect()
-    console.log('✅ Conexión exitosa a la base de datos')
+// export const testConnection = async () => {
+//   try {
+//     const connection = await db.getConnection();
+//     console.log('✅ Conexión exitosa a la base de datos')
 
-    // Prueba real: Ejecutar consulta simple
-    await prisma.$queryRaw`SELECT 1`
-    
-    return "Conexión exitosa a la base de datos"
+//     // Prueba real: Ejecutar consulta simple
+//     await connection.query('SELECT 1')
+//     connection.release();
 
-  } catch (error) {
-    console.error('❌ Error de conexión:', error)
-    if (error instanceof Error) {
-        throw new Error(error.message);
-    }
-    throw error;
-  }
-}
+//     return "Conexión exitosa a la base de datos"
+
+//   } catch (error) {
+//     console.error('❌ Error de conexión:', error)
+//     if (error instanceof Error) {
+//         throw new Error(error.message);
+//     }
+//     throw error;
+//   }
+// }
