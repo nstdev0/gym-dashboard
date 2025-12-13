@@ -11,8 +11,6 @@ export class MembersController {
 
   create = async (req: Request, res: Response) => {
     const data = req.body;
-    console.log("MEMBER DATA TO CREATE =====>", req);
-
     const response = await this.membersService.create(data);
     res.json(response);
   };
@@ -35,9 +33,4 @@ export class MembersController {
     const response = await this.membersService.delete(id);
     res.json(response);
   };
-
-  // memberById = async (req: Request, res: Response) => {
-  //   const member = await this.membersService.memberById(Number(req.params.id));
-  //   res.json(member);
-  // };
 }

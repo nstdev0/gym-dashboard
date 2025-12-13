@@ -44,9 +44,4 @@ export class MembersService {
     const deletedMember = await this.membersRepository.delete(id);
     return deletedMember;
   };
-
-  //   memberById = async (id: number): Promise<Member> => {
-  //     const member = await this.membersRepository.memberById(id);
-  //     return member;
-  //   };
 }
