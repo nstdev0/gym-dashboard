@@ -25,6 +25,12 @@ enum DocType {
   CE
 }
 
+enum Role {
+  OWNER
+  ADMIN
+  USER
+}
+
 // Definición de la tabla 'Member'
 model Member {
   id Int @id @default(autoincrement())
@@ -53,4 +59,18 @@ model Member {
   @@unique([docType, docNumber])
   // Opcional: Si quieres que la tabla en la BD se llame 'members' (plural)
   @@map("members")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  role      Role
+  firstName String
+  lastName  String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }

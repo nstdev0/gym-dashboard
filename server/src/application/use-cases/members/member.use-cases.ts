@@ -23,6 +23,26 @@ export class MembersService {
       );
     }
 
+    const isDNI = data.docType === "DNI";
+    if (isDNI && data.docNumber.length !== 8) {
+      throw new Error("El número de DNI debe tener 8 dígitos.");
+    }
+
+    const isPassport = data.docType === "PASSPORT";
+    if (
+      isPassport &&
+      (data.docNumber.length < 6 || data.docNumber.length > 9)
+    ) {
+      throw new Error("El número de pasaporte debe tener entre 6 y 9 dígitos.");
+    }
+
+    const isCE = data.docType === "CE";
+    if (isCE && (data.docNumber.length < 7 || data.docNumber.length > 12)) {
+      throw new Error(
+        "El número de Carnet de Extranjería debe tener entre 7 y 12 dígitos."
+      );
+    }
+
     const newMember = await this.membersRepository.create(data);
     return newMember;
   };

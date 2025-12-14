@@ -28,22 +28,6 @@ export class MemberRepository extends BaseRepository<Member, string> {
     super(prisma.member);
   }
 
-  async create(data: CreateMemberDTO): Promise<Member> {
-    return await prisma.member.create({
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        gender: data.gender,
-        birthDate: new Date(data.birthDate),
-        height: data.height,
-        weight: data.weight,
-        docType: data.docType,
-        docNumber: data.docNumber,
-        phoneNumber: data.phoneNumber,
-      },
-    });
-  }
-
   async findUniqueDocument(documentData: {
     docType: DocType;
     docNumber: string;

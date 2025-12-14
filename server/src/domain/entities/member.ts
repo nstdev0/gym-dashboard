@@ -1,6 +1,4 @@
-import { DocType } from "../../generated/prisma/enums";
-
-export type Gender = "MALE" | "FEMALE";
+import { DocType, Gender } from "../../generated/prisma/enums";
 
 export type Member = {
   id: number;

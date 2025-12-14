@@ -13,8 +13,6 @@ router.get("/", membersController.findAll);
 
 router.post("/", membersController.create);
 
-// TODO: Implementar las siguientes rutas:
-
 router.get("/:id", membersController.findById);
 
 router.put("/:id", membersController.update);

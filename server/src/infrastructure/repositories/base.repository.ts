@@ -9,37 +9,45 @@ export interface Delegate<T> {
   delete(args: { where: any }): Promise<T>;
 }
 
-export abstract class BaseRepository<T, ID extends string | number> implements IBaseRepository<T, ID> {
-    constructor(protected readonly model: Delegate<T>) {}
+export abstract class BaseRepository<TEntity, ID extends string | number>
+  implements IBaseRepository<TEntity, ID>
+{
+  constructor(protected readonly model: Delegate<TEntity>) {}
 
-    async findAll(): Promise<T[]> {
-        return this.model.findMany();
-    }
+  async findAll(): Promise<TEntity[]> {
+    return this.model.findMany();
+  }
 
-    async findById(id: ID): Promise<T | null> {
-        const parsedId: number = parseInt(id as string, 10);
-        return this.model.findUnique({
-            where: { id: parsedId },
-        });
-    }
+  async findById(id: ID): Promise<TEntity | null> {
+    const parsedId: number = parseInt(id as string, 10);
+    return this.model.findUnique({
+      where: { id: parsedId },
+    });
+  }
 
-    async create(data: any): Promise<T> {
-        return this.model.create({
-            data,
-        });
-    }
+  async findUnique(where: Partial<TEntity>): Promise<TEntity | null> {
+    return this.model.findUnique({
+      where,
+    });
+  }
 
-    async update(id: ID, data: any): Promise<T | null> {
-        return await this.model.update({
-            where: { id },
-            data,
-        });
-    }
+  async create(data: any): Promise<TEntity> {
+    return this.model.create({
+      data,
+    });
+  }
 
-    async delete(id: ID): Promise<T | null> {
-        const parsedId: number = parseInt(id as string, 10);
-        return await this.model.delete({
-            where: { id: parsedId },
-        });
-    }
+  async update(id: ID, data: any): Promise<TEntity | null> {
+    return await this.model.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async delete(id: ID): Promise<TEntity | null> {
+    const parsedId: number = parseInt(id as string, 10);
+    return await this.model.delete({
+      where: { id: parsedId },
+    });
+  }
 }
