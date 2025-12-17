@@ -1,19 +1,5 @@
-import { Role } from "../../generated/prisma/enums";
+import { User } from "../entities/user";
 
-export interface CreateUserDTO {
-  role: Role;
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-}
+export type CreateUserDTO = Omit<User, "id" | "createdAt" | "updatedAt">; // TODO: Revisar si esto esta completamente bien
 
-export interface UpdateUserDTO {
-  role?: Role | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  userName?: string | null;
-  email?: string | null;
-  password?: string | null;
-}
+export type UpdateUserDTO = Partial<CreateUserDTO>;

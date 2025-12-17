@@ -9,8 +9,8 @@ export interface Delegate<T> {
   delete(args: { where: any }): Promise<T>;
 }
 
-export abstract class BaseRepository<TEntity, ID extends string | number>
-  implements IBaseRepository<TEntity, ID>
+export abstract class BaseRepository<TEntity, Id>
+  implements IBaseRepository<TEntity, Id>
 {
   constructor(protected readonly model: Delegate<TEntity>) {}
 
@@ -18,10 +18,9 @@ export abstract class BaseRepository<TEntity, ID extends string | number>
     return this.model.findMany();
   }
 
-  async findById(id: ID): Promise<TEntity | null> {
-    const parsedId: number = parseInt(id as string, 10);
+  async findById(id: Id): Promise<TEntity | null> {
     return this.model.findUnique({
-      where: { id: parsedId },
+      where: { id: id },
     });
   }
 
@@ -37,17 +36,16 @@ export abstract class BaseRepository<TEntity, ID extends string | number>
     });
   }
 
-  async update(id: ID, data: any): Promise<TEntity | null> {
+  async update(id: Id, data: any): Promise<TEntity | null> {
     return await this.model.update({
       where: { id },
       data,
     });
   }
 
-  async delete(id: ID): Promise<TEntity | null> {
-    const parsedId: number = parseInt(id as string, 10);
+  async delete(id: Id): Promise<TEntity | null> {
     return await this.model.delete({
-      where: { id: parsedId },
+      where: { id: id },
     });
   }
 }

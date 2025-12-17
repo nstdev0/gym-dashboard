@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -13,7 +7,7 @@ datasource db {
   provider = "mysql"
 }
 
-// Definicion de las opciones permitidas
+// --- ENUMS ---
 enum Gender {
   MALE
   FEMALE
@@ -28,49 +22,157 @@ enum DocType {
 enum Role {
   OWNER
   ADMIN
-  USER
+  STAFF
 }
 
-// Definición de la tabla 'Member'
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  BANK_TRANSFER
+  YAPE
+  PLIN
+  OTHER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  PAUSED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+  PARTIALLY_PAID
+}
+
+// --- MODELS ---
+
 model Member {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
 
-  // Datos Personales
-  firstName String // nombre
-  lastName  String // apellido
-  gender    Gender // genero (Podrías usar un Enum aquí)
-  birthDate DateTime // nacimiento
+  firstName String
+  lastName  String?
+  gender    Gender?
+  birthDate DateTime? @db.Date
 
-  // Datos Físicos
-  height Float // talla (ej: 1.75 o 175)
-  weight Float // peso (ej: 75.5)
+  height Float?
+  weight Float?
 
-  // Identificación
-  docType   DocType // tipo de documento (DNI, Pasaporte, CE)
-  docNumber String // numero documento
+  docType   DocType
+  docNumber String
 
-  // Contacto
-  phoneNumber String // numero de celular
+  phoneNumber String?
 
-  // Auditoría (Muy útil tenerlo siempre)
+  isActive Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relaciones
+  memberships Membership[]
+  invoices    Invoice[]
+
   @@unique([docType, docNumber])
-  // Opcional: Si quieres que la tabla en la BD se llame 'members' (plural)
+  // Índices para búsquedas rápidas
+  @@index([firstName])
+  @@index([lastName])
+  @@index([isActive])
   @@map("members")
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   role      Role
   firstName String
-  lastName  String
-  username  String   @unique
+  lastName  String?
+  username  String?  @unique
   email     String   @unique
   password  String
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Como un usuario puede emitir Y actualizar facturas, separamos las listas
+  invoicesIssued  Invoice[] @relation("IssuedInvoices")
+  invoicesUpdated Invoice[] @relation("UpdatedInvoices")
+
   @@map("users")
+}
+
+model Plan {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+
+  price Decimal @db.Decimal(10, 2)
+
+  isActive Boolean @default(true)
+
+  durationInDays Int
+
+  // Relaciones
+  memberships Membership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model Membership {
+  id String @id @default(uuid())
+
+  // Claves foráneas
+  memberId String
+  planId   String
+
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relaciones
+  member   Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  plan     Plan      @relation(fields: [planId], references: [id], onDelete: Restrict)
+  invoices Invoice[]
+
+  @@map("memberships")
+}
+
+model Invoice {
+  id           String  @id @default(uuid())
+  memberId     String
+  membershipId String?
+
+  amount Decimal @db.Decimal(10, 2)
+
+  issuedAt DateTime @default(now())
+
+  issuedBy  String
+  updatedBy String?
+  paidAt    DateTime?
+  status    InvoiceStatus
+  method    PaymentMethod
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones con Usuario (Staff)
+  user       User  @relation("IssuedInvoices", fields: [issuedBy], references: [id])
+  userUpdate User? @relation("UpdatedInvoices", fields: [updatedBy], references: [id])
+
+  // onDelete: Restrict -> Evita que borres un miembro si tiene facturas (seguridad contable)
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  member     Member      @relation(fields: [memberId], references: [id], onDelete: Restrict)
+
+  @@index([memberId])
+  @@index([issuedAt])
+  @@index([status])
+  @@map("invoices")
 }

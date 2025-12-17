@@ -1,23 +1,5 @@
-import { DocType, Gender } from "../../generated/prisma/enums";
+import { Member } from "../entities/member";
 
-export interface CreateMemberDTO {
-  firstName: string;
-  lastName: string;
-  gender: Gender;
-  birthDate: Date;
-  height: number;
-  weight: number;
-  docType: DocType;
-  docNumber: string;
-  phoneNumber: string;
-}
+export type CreateMemberDTO = Omit<Member, "id" | "createdAt" | "updatedAt">;
 
-export interface UpdateMemberDTO {
-  firstName?: string | null;
-  lastName?: string | null;
-  gender?: Gender | null;
-  birthDate?: Date;
-  height?: number | null;
-  weight?: number | null;
-  phoneNumber?: string | null;
-}
+export type UpdateMemberDTO = Partial<CreateMemberDTO>;

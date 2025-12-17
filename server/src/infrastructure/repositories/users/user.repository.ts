@@ -40,7 +40,10 @@ export class UserRepository extends BaseRepository<User, string> {
     });
   }
 
-  async validate(credentials: { email: string; password: string }): Promise<User | null> {
+  async validate(credentials: {
+    email: string;
+    password: string;
+  }): Promise<User | null> {
     const user = await this.findByEmail(credentials.email);
     if (!user) return null;
 

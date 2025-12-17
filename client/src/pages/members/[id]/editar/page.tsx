@@ -1,12 +1,18 @@
 import PageHeader from "@/components/ui/PageHeader";
-import NewMemberForm from "../components/new-member-form";
+
+import { useParams } from "react-router-dom";
+import EditMemberForm from "../../components/edit-member-form";
 
 export default function NewMemberPage() {
+  const { id } = useParams<{ id: string }>();
+
+  if (!id) return <div>Invalid ID</div>;
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <PageHeader
-        title="Agregar un miembro"
-        description="Ingresa los datos del nuevo miembro"
+        title="Editando"
+        description="Editar detalles del miembro"
         buttonProps={[
           {
             to: "/admin/dashboard/miembros",
@@ -14,7 +20,7 @@ export default function NewMemberPage() {
           },
         ]}
       />
-      <NewMemberForm />
+      <EditMemberForm id={id} />
     </div>
   );
 }

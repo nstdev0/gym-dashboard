@@ -9,14 +9,20 @@ export default function MemberDetailPage() {
   if (!id) return <div>Invalid ID</div>;
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto p-6">
       <PageHeader
         title="Miembro"
         description="Detalles del miembro"
-        buttonProps={{
-          to: "/admin/dashboard/miembros",
-          text: "Regresar",
-        }}
+        buttonProps={[
+          {
+            to: `/admin/dashboard/miembros/${id}/editar`,
+            text: "Editar",
+          },
+          {
+            to: "/admin/dashboard/miembros",
+            text: "Regresar",
+          },
+        ]}
       />
       <MemberDetail id={id} />
     </div>

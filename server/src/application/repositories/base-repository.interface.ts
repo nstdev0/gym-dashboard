@@ -1,7 +1,7 @@
-export interface IBaseRepository<T, ID extends string | number> {
-    findAll(): Promise<T[]>;
-    findById(id: ID): Promise<T | null>;
-    create(data: any): Promise<T>;
-    update(id: ID, data: any): Promise<T | null>;
-    delete(id: ID): Promise<T | null>;
+export interface IBaseRepository<T, Id> {
+  findAll(): Promise<T[]>;
+  findById(id: Id): Promise<T | null>;
+  create(data: any): Promise<T>;
+  update(id: Id, data: any): Promise<T | null>;
+  delete(id: Id): Promise<T | null>;
 }

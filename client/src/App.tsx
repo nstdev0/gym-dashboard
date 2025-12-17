@@ -13,6 +13,7 @@ const SignUpPage = lazy(() => import("./pages/auth/sign-up/page"));
 const MembersPage = lazy(() => import("./pages/members/page"));
 const NewMemberPage = lazy(() => import("./pages/members/nuevo/page"));
 const MemberDetailPage = lazy(() => import("./pages/members/[id]/page"));
+const EditMemberPage = lazy(() => import("./pages/members/[id]/editar/page"));
 
 // Plan Routes
 const PlansPage = lazy(() => import("./pages/plans/page"));
@@ -22,7 +23,6 @@ const MembershipsPage = lazy(() => import("./pages/memberships/page"));
 
 // User Routes
 const UsersPage = lazy(() => import("./pages/users/page"));
-
 
 // Other routes
 const UnauthorizedPage = lazy(() => import("./pages/auth/unauthorized/page"));
@@ -35,21 +35,43 @@ function App() {
         <Routes>
           {/* PUBLIC ROUTES */}
           <Route path="/auth/sign-in" element={<SignInPage />} />
-          <Route path="/auth/sign-up" element={<SignUpPage />} />
           {/* <Route path="/logout" element={<LogoutPage />}/></Route> */}
 
           {/* PROTECTED ROUTES */}
           <Route element={<Layout />}>
             <Route element={<ProtectedRoute />}>
-              <Route path="/admin/dashboard" element={<DashboardPage />} />
-              <Route path="/admin/dashboard/miembros" element={<MembersPage />} />
-              <Route path="/admin/dashboard/miembros/nuevo" element={<NewMemberPage />} />
-              <Route path="/admin/dashboard/miembros/:id" element={<MemberDetailPage />} />
+              {/* REGISTER USER ROUTE, ONLY OWNER ROLE IS ABLE TO REGISTER A NEW USER */}
+              <Route path="/auth/sign-up" element={<SignUpPage />} />
+              {/* DASHBOARD ROUTE */}
+              <Route
+                path="/admin/dashboard/inicio"
+                element={<DashboardPage />}
+              />
+              {/* MEMBERS ROUTES */}
+              <Route
+                path="/admin/dashboard/miembros"
+                element={<MembersPage />}
+              />
+              <Route
+                path="/admin/dashboard/miembros/nuevo"
+                element={<NewMemberPage />}
+              />
+              <Route
+                path="/admin/dashboard/miembros/:id"
+                element={<MemberDetailPage />}
+              />
+              <Route
+                path="/admin/dashboard/miembros/:id/editar"
+                element={<EditMemberPage />}
+              />
+              {/* PLANS ROUTES */}
               <Route path="/admin/dashboard/planes" element={<PlansPage />} />
+              {/* MEMBERSHIPS ROUTES */}
               <Route
                 path="/admin/dashboard/membresias"
                 element={<MembershipsPage />}
               />
+              {/* USERS ROUTES */}
               <Route path="/admin/dashboard/usuarios" element={<UsersPage />} />
             </Route>
           </Route>

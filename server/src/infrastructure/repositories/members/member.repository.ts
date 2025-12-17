@@ -18,8 +18,7 @@
 // }
 
 import { CreateMemberDTO, UpdateMemberDTO } from "../../../domain/DTOs/member";
-import { Member } from "../../../domain/entities/member";
-import { DocType } from "../../../generated/prisma/enums";
+import { DocType, Member } from "../../../domain/entities/member";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
 

@@ -11,50 +11,124 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-
 import {
-  createMemberSchema,
-  type CreateMemberSchema,
+  updateMemberSchema,
+  type MemberSchema,
+  type UpdateMemberSchema,
 } from "../../../../../server/src/lib/lib/validators/member.schema";
+import { Switch } from "@/components/ui/switch";
 
-export default function NewMemberForm() {
-    const navigate = useNavigate()
+export default function EditMemberForm({ id }: { id: string }) {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
-    const {
-        register,
-        handleSubmit,
-        control,
-        formState: { isSubmitting, errors },
-      } = useForm<CreateMemberSchema>({
-        resolver: zodResolver(createMemberSchema),
-      });
-    
-      const onSubmit: SubmitHandler<CreateMemberSchema> = async (data) => {
-        try {
-          const role = localStorage.getItem("role")
-          if (role !== "OWNER") {
-            throw new Error("No tienes permiso para crear miembros")
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { isSubmitting, errors },
+  } = useForm<UpdateMemberSchema>({
+    resolver: zodResolver(updateMemberSchema),
+  });
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "OWNER") {
+      throw new Error("No tienes permiso para editar miembros"); // Ideally handle ui feedback
+    }
+
+    const fetchMemberDetails = async () => {
+      try {
+        const memberDetail: MemberSchema = await apiFetch(
+          `/members/${id}`,
+          "GET",
+          null,
+          {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
-          await apiFetch(
-            "/members",
-            "POST",
-            data,
-            {Authorization: `Bearer ${localStorage.getItem("token")}`}
-          );
-          navigate("/admin/dashboard/miembros");
-        } catch (error) {
-          throw new Error("Error al crear miembro", error as Error);
+        );
+
+        // Prepara los datos para el form
+        // birthDate viene como string ISO o Date, el input date necesita YYYY-MM-DD
+        let formattedDate: string | undefined = undefined;
+        if (memberDetail.birthDate) {
+           formattedDate = new Date(memberDetail.birthDate).toISOString().split("T")[0];
         }
+
+        reset({
+          ...memberDetail,
+          birthDate: formattedDate, 
+        });
+      } catch (error) {
+        console.error("Error fetching member:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMemberDetails();
+  }, [id, reset]);
+
+  const onSubmit: SubmitHandler<UpdateMemberSchema> = async (data) => {
+    try {
+      const role = localStorage.getItem("role");
+      if (role !== "OWNER") {
+        throw new Error("No tienes permiso para editar miembros");
+      }
+      
+      const updatedMemberData = {
+        ...data,
       };
 
-    return (
+      await apiFetch(`/members/${id}`, "PUT", updatedMemberData, {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      });
+      navigate("/admin/dashboard/miembros");
+    } catch (error) {
+      console.error("Error updating member", error);
+      alert("Error al actualizar miembro")
+    }
+  };
+
+  
+  const handleDelete = async (id: string | number) => {
+    try {
+      const confirm = window.confirm("Estas seguro de eliminar este miembro?")
+      if (!confirm) {
+        return;
+      }
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No se encontro token");
+      }
+      const role = localStorage.getItem("role");
+      if (role !== "OWNER") {
+        throw new Error("No tienes permiso para eliminar miembros");
+      }
+      await apiFetch(`/members/${id}`, "DELETE", null, {
+        Authorization: `Bearer ${token}`,
+      });
+      const newData = data.filter((member) => member.id !== id);
+      setData(newData);
+    } catch (error) {
+      console.error("Error eliminando miembro:", error);
+    }
+    navigate("/admin/dashboard/miembros");
+  }
+  
+  if (isLoading) {
+    return <div className="p-4 text-center">Cargando datos del miembro...</div>;
+  }
+  
+  return (
     <Card className="m-auto w-full max-w-2xl border-border/60">
       <CardHeader>
-        <CardTitle>Registrar Nuevo Miembro</CardTitle>
+        <CardTitle>Editar Miembro</CardTitle>
         <CardDescription>
-          Ingresa los datos personales para registrar un nuevo miembro en el gimnasio.
+          Actualiza la información del miembro.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -62,20 +136,20 @@ export default function NewMemberForm() {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombre</FieldLabel>
+                <FieldLabel htmlFor="firstName">Nombres</FieldLabel>
                 <Input
                   {...register("firstName")}
-                  placeholder="Nombre"
+                  placeholder="Nombres"
                 />
                 {errors.firstName && (
                   <span className="text-red-500 text-sm">{errors.firstName.message}</span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="lastName">Apellido</FieldLabel>
+                <FieldLabel htmlFor="lastName">Apellidos</FieldLabel>
                 <Input
                   {...register("lastName")}
-                  placeholder="Apellido"
+                  placeholder="Apellidos"
                 />
                 {errors.lastName && (
                   <span className="text-red-500 text-sm">{errors.lastName.message}</span>
@@ -116,7 +190,7 @@ export default function NewMemberForm() {
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="height">Altura (cm)</FieldLabel>
+                <FieldLabel htmlFor="height">Altura</FieldLabel>
                 <Input
                   type="number"
                   step="0.01"
@@ -127,7 +201,7 @@ export default function NewMemberForm() {
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="weight">Peso (kg)</FieldLabel>
+                <FieldLabel htmlFor="weight">Peso</FieldLabel>
                 <Input
                   type="number"
                   step="0.1"
@@ -169,7 +243,7 @@ export default function NewMemberForm() {
                   {...register("docNumber")}
                 />
                 {errors.docNumber && (
-                  <span className="text-red-500 text-sm">{errors.docNumber?.message}</span>
+                  <span className="text-red-500 text-sm">{errors.docNumber.message}</span>
                 )}
               </Field>
               <Field className="md:col-span-2">
@@ -182,11 +256,33 @@ export default function NewMemberForm() {
                   <span className="text-red-500 text-sm">{errors.phoneNumber.message}</span>
                 )}
               </Field>
+              <Field>
+                <FieldLabel htmlFor="isActive">Activo</FieldLabel>
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className={field.value ? "data-[state=checked]:bg-green-600" : "data-[state=unchecked]:bg-slate-300"}
+                      />
+                      <span className={`text-sm font-medium ${field.value ? "text-green-600" : "text-slate-500"}`}>
+                        {field.value ? "ACTIVO" : "INACTIVO"}
+                      </span>
+                    </div>
+                  )}
+                />
+              </Field>
             </div>
           </FieldSet>
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 gap-2">
+            <Button variant="destructive" type="button" disabled={isSubmitting} onClick={() => handleDelete(id)}>
+              Eliminar miembro
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Registrando..." : "Registrar miembro"}
+              {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
             </Button>
           </div>
         </form>

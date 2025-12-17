@@ -29,7 +29,7 @@ export class MembersController {
   };
 
   delete = async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const { id } = req.params;
     const response = await this.membersService.delete(id);
     res.json(response);
   };

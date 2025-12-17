@@ -13,12 +13,12 @@ export class UserService {
 
   create = async (data: CreateUserDTO): Promise<User> => {
     const existinUserEmail = await this.userRepository.findByEmail(data.email);
-    const existingUserUsername = await this.userRepository.findByUsername(data.username);
+    const existingUserUsername = await this.userRepository.findByUsername(
+      data.username
+    );
 
     if (existinUserEmail) {
-      throw new Error(
-        `Ya existe un usuario con el correo: ${data.email}`
-      );
+      throw new Error(`Ya existe un usuario con el correo: ${data.email}`);
     }
     if (existingUserUsername) {
       throw new Error(
