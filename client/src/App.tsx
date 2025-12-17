@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import DashboardPage from "./pages/page";
-import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardPage from "./pages/dashboard/page";
+import ProtectedRoutes from "./components/ProtectedRoutes";
 import Layout from "./components/ui/Layout";
 
 // Auth Routes
@@ -17,12 +17,21 @@ const EditMemberPage = lazy(() => import("./pages/members/[id]/editar/page"));
 
 // Plan Routes
 const PlansPage = lazy(() => import("./pages/plans/page"));
+// const NewPlanPage = lazy(() => import("./pages/plans/nuevo/page"));
+// const PlanDetailPage = lazy(() => import("./pages/plans/[id]/page"));
+// const EditPlanPage = lazy(() => import("./pages/plans/[id]/editar/page"));
 
 // Membership Routes
 const MembershipsPage = lazy(() => import("./pages/memberships/page"));
+// const NewMembershipPage = lazy(() => import("./pages/memberships/nuevo/page"));
+// const MembershipDetailPage = lazy(() => import("./pages/memberships/[id]/page"));
+// const EditMembershipPage = lazy(() => import("./pages/memberships/[id]/editar/page"));
 
 // User Routes
 const UsersPage = lazy(() => import("./pages/users/page"));
+// const NewUserPage = lazy(() => import("./pages/users/nuevo/page"));
+// const UserDetailPage = lazy(() => import("./pages/users/[id]/page"));
+// const EditUserPage = lazy(() => import("./pages/users/[id]/editar/page"));
 
 // Other routes
 const UnauthorizedPage = lazy(() => import("./pages/auth/unauthorized/page"));
@@ -39,7 +48,7 @@ function App() {
 
           {/* PROTECTED ROUTES */}
           <Route element={<Layout />}>
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoutes />}>
               {/* REGISTER USER ROUTE, ONLY OWNER ROLE IS ABLE TO REGISTER A NEW USER */}
               <Route path="/auth/sign-up" element={<SignUpPage />} />
               {/* DASHBOARD ROUTE */}

@@ -1,5 +1,5 @@
 import z from "zod";
-import { baseSchema } from "./base.schema";
+import { baseSchema, priceSchema } from "./base.schema";
 
 export const planSchema = baseSchema.merge(
   z.object({
@@ -11,11 +11,7 @@ export const planSchema = baseSchema.merge(
       .max(500, "La descripción no puede exceder los 500 caracteres")
       .optional()
       .nullable(),
-    price: z
-      .number("El precio debe ser un número")
-      .min(0, "El precio no puede ser negativo")
-      .positive("El precio debe ser mayor a 0")
-      .multipleOf(0.01, "El precio no puede tener más de 2 decimales"),
+    price: priceSchema,
     isActive: z.boolean().default(true),
     durationInDays: z
       .number("La duración debe ser un número entero")

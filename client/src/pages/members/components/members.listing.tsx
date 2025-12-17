@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -45,7 +51,7 @@ export default function MembersListingPage() {
 
   const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar este miembro?")
+      const confirm = window.confirm("Estas seguro de eliminar este miembro?");
       if (!confirm) {
         return;
       }
@@ -66,18 +72,26 @@ export default function MembersListingPage() {
       console.error("Error eliminando miembro:", error);
     }
     navigate("/admin/dashboard/miembros");
-  }
+  };
 
   return (
     <div className="space-y-4">
-      {isLoading && <div className="p-4 text-center text-muted-foreground">Cargando miembros...</div>}
-      {!auth && <div className="p-4 text-center text-destructive">No autorizado!</div>}
-      
+      {isLoading && (
+        <div className="p-4 text-center text-muted-foreground">
+          Cargando miembros...
+        </div>
+      )}
+      {!auth && (
+        <div className="p-4 text-center text-destructive">No autorizado!</div>
+      )}
+
       {!isLoading && auth && (
         <Card>
           <CardContent className="p-0">
             {data.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">No hay miembros registrados.</div>
+              <div className="p-8 text-center text-muted-foreground">
+                No hay miembros registrados.
+              </div>
             ) : (
               <Table>
                 <TableHeader>
@@ -87,6 +101,7 @@ export default function MembersListingPage() {
                     <TableHead>Apellidos</TableHead>
                     <TableHead>Documento</TableHead>
                     <TableHead>Telefono</TableHead>
+                    <TableHead>Plan activo</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right pr-6">Acciones</TableHead>
                   </TableRow>
@@ -99,30 +114,41 @@ export default function MembersListingPage() {
                         <TableCell className="pl-6 font-medium">
                           {member.firstName}
                         </TableCell>
-                        <TableCell>
-                          {member.lastName || "-"}
-                        </TableCell>
+                        <TableCell>{member.lastName || "-"}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {member.docType} {member.docNumber}
                         </TableCell>
+                        <TableCell>{member.phoneNumber || "-"}</TableCell>
+                        <TableCell>Sin plan</TableCell>
                         <TableCell>
-                          {member.phoneNumber || "-"}
-                        </TableCell>
-                        <TableCell>
-                          {member.isActive ? <CircleCheck className="w-4 h-4 text-green-500" /> : <CircleX className="w-4 h-4 text-red-500" />}
+                          {member.isActive ? (
+                            <CircleCheck className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <CircleX className="w-4 h-4 text-red-500" />
+                          )}
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                           <div className="flex justify-end gap-2">
+                          <div className="flex justify-end gap-2">
                             <Link to={`/admin/dashboard/miembros/${member.id}`}>
-                              <Button variant="ghost" size="sm">Ver</Button>
+                              <Button variant="ghost" size="sm">
+                                Ver
+                              </Button>
                             </Link>
                             <Link
                               to={`/admin/dashboard/miembros/${member.id}/editar`}
                             >
-                              <Button variant="outline" size="sm">Editar</Button>
+                              <Button variant="outline" size="sm">
+                                Editar
+                              </Button>
                             </Link>
-                              <Button onClick={() => handleDelete(member.id)} variant="destructive" size="sm">Eliminar</Button>
-                           </div>
+                            <Button
+                              onClick={() => handleDelete(member.id)}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              Eliminar
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

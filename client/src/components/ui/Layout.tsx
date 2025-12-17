@@ -6,7 +6,7 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="w-full">
+      <main className="w-full h-full overflow-auto">
         <SidebarTrigger />
         <Outlet />
       </main>

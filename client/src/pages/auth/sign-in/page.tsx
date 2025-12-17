@@ -13,12 +13,11 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { CardTitle } from "@/components/ui/card";
 
 type Inputs = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
 export default function SignInPage() {
-
   const navigate = useNavigate();
 
   const {
@@ -29,19 +28,12 @@ export default function SignInPage() {
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
-      console.log("DATA---->", data);
-      console.log("STRINGIFYDATA---->", JSON.stringify(data));
-      
-      const response: {token: string, role: string} = await apiFetch<{token: string, role: string}>(
-        "/auth/sign-in",
-        "POST",
-        data
-      );
-
+      const response: { token: string; role: string } = await apiFetch<{
+        token: string;
+        role: string;
+      }>("/auth/sign-in", "POST", data);
       localStorage.setItem("token", response.token);
       localStorage.setItem("role", response.role);
-
-      console.log("---------->RESPONSE", response);
       navigate("/admin/dashboard/miembros");
     } catch (error) {
       throw new Error("Error al iniciar sesión", error as Error);
@@ -50,7 +42,10 @@ export default function SignInPage() {
 
   return (
     <div className="m-auto w-full h-dvh flex items-center justify-center">
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md space-y-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-md space-y-6"
+      >
         <CardTitle>Iniciar sesión</CardTitle>
         <FieldSet>
           <FieldGroup>
@@ -84,7 +79,9 @@ export default function SignInPage() {
               {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
             <Link to="/auth/sign-up" className="w-full text-center text-sm">
-              {isSubmitting ? "Registrarse..." : "¿No tienes una cuenta? Registrate aqui"}
+              {isSubmitting
+                ? "Registrarse..."
+                : "¿No tienes una cuenta? Registrate aqui"}
             </Link>
           </FieldGroup>
         </FieldSet>

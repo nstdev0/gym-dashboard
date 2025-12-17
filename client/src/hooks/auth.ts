@@ -8,19 +8,21 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("Calling checkAuth");
-        const validToken: boolean = await apiFetch("/auth/verify-token", "POST", null, {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        })
-        console.log("RESPUESTA USEAUTH=----->", validToken);
+        const validToken: boolean = await apiFetch(
+          "/auth/verify-token",
+          "POST",
+          null,
+          {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          }
+        );
         if (!validToken) {
           setIsLogged(false);
           throw new Error("Token no valido");
         }
-        
+
         setIsLogged(validToken);
       } catch (error) {
-        console.log("ERROR USEAUTH=----->", error);
         console.error(error);
         setIsLogged(false);
       } finally {

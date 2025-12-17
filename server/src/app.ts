@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
 
+import authRouter from "./routes/auth/auth.routes";
 import membersRouter from "./routes/members/member.routes";
 import usersRouter from "./routes/users/user.routes";
-import authRouter from "./routes/auth/auth.routes";
+import plansRouter from "./routes/plans/plan.routes";
+import membershipRouter from "./routes/memberships/membership.routes";
 
 import { verifyTokenMiddleware } from "./lib/api/jwt";
 
@@ -34,6 +36,8 @@ app.use("/api/auth", authRouter);
 // Protected routes
 app.use("/api/members", verifyTokenMiddleware, membersRouter);
 app.use("/api/users", verifyTokenMiddleware, usersRouter);
+app.use("/api/plans", verifyTokenMiddleware, plansRouter);
+app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
 
 // 404 Not found route
 app.use((req, res) => {

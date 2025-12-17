@@ -2,7 +2,7 @@ import { Membership } from "../entities/membership";
 
 export type CreateMembershipDTO = Omit<
   Membership,
-  "id" | "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt" | "startDate" | "endDate"
 >;
 
 export type UpdateMembershipDTO = Partial<

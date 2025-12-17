@@ -6,8 +6,7 @@ export class MembersService {
   constructor(private membersRepository: MemberRepository) {}
 
   findAll = async (): Promise<Member[]> => {
-    const members = await this.membersRepository.findAll();
-    return members;
+    return await this.membersRepository.findAll();
   };
 
   create = async (data: CreateMemberDTO): Promise<Member> => {
@@ -43,25 +42,21 @@ export class MembersService {
       );
     }
 
-    const newMember = await this.membersRepository.create(data);
-    return newMember;
+    return await this.membersRepository.create(data);
   };
 
   findById = async (id: string): Promise<Member | null> => {
-    const member = await this.membersRepository.findById(id);
-    return member;
+    return await this.membersRepository.findById(id);
   };
 
   update = async (
     id: string,
     data: UpdateMemberDTO
   ): Promise<Member | null> => {
-    const updatedMember = await this.membersRepository.update(id, data);
-    return updatedMember;
+    return await this.membersRepository.update(id, data);
   };
 
   delete = async (id: string): Promise<Member | null> => {
-    const deletedMember = await this.membersRepository.delete(id);
-    return deletedMember;
+    return await this.membersRepository.delete(id);
   };
 }

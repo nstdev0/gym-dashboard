@@ -1,10 +1,12 @@
+import { Decimal } from "@prisma/client/runtime/client";
+
 export type Plan = {
   id: string;
 
   name: string;
   description: string | null;
 
-  price: number;
+  price: Decimal;
 
   isActive: boolean;
 

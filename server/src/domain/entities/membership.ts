@@ -1,8 +1,8 @@
 export const MembershipStatus = {
-  ACTIVE: "active",
-  INACTIVE: "inactive",
-  EXPIRED: "expired",
-  PAUSED: "paused",
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  EXPIRED: "EXPIRED",
+  PAUSED: "PAUSED",
 } as const;
 export type MembershipStatus =
   (typeof MembershipStatus)[keyof typeof MembershipStatus];

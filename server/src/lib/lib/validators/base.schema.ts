@@ -25,6 +25,11 @@ export const membershipStatus = z.enum([
   "EXPIRED",
   "PAUSED",
 ]);
+export const priceSchema = z
+  .number("El precio debe ser un número")
+  .min(0, "El precio no puede ser negativo")
+  .positive("El precio debe ser mayor a 0")
+  .multipleOf(0.01, "El precio no puede tener más de 2 decimales");
 
 export const baseSchema = z.object({
   id: z.uuid("ID inválido (Debe ser UUID)"),

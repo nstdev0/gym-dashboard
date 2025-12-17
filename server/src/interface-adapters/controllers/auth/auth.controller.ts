@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthService } from "../../../lib/api/auth.service";
 import jwt from "jsonwebtoken";
-import {config } from "dotenv"
+import { config } from "dotenv";
 
-config()
+config();
 
 const secret: string = process.env.SECRET_KEY || "";
 
@@ -17,7 +17,8 @@ export class AuthController {
       res.status(200).json(result);
     } catch (error) {
       res.status(401).json({
-        message: error instanceof Error ? error.message : "Authentication failed",
+        message:
+          error instanceof Error ? error.message : "Authentication failed",
       });
     }
   };
@@ -28,7 +29,7 @@ export class AuthController {
       const result = await this.authService.register(data);
       res.status(201).json(result);
     } catch (error) {
-       res.status(400).json({
+      res.status(400).json({
         message: error instanceof Error ? error.message : "Registration failed",
       });
     }
@@ -36,10 +37,7 @@ export class AuthController {
 
   signOut = async (req: Request, res: Response) => {
     try {
-      const { userId } = req.body; // Or however you want to handle it, maybe just clear cookie? 
-      // Current auth is JWT stateless, so client drops token. 
-      // Server-side invalidation would need blacklist.
-      // For now, just a dummy success.
+      const { userId } = req.body;
       await this.authService.signOut(userId);
       res.status(200).json({ message: "Signed out successfully" });
     } catch (error) {
@@ -51,21 +49,13 @@ export class AuthController {
 
   verifyToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("REQUEST======>", req.headers);
-      console.log("SECRET------>", secret);
-      
-      
-      const token: string = req.headers.authorization?.split(" ")[1];
-      console.log("TOKEN-------", token);
+      const token = req.headers.authorization?.split(" ")[1] || "";
       const response = jwt.verify(token, secret);
-
-      
-      console.log("RESPONSE======>", response);
-      
-      return res.status(200).json(response)
+      return res.status(200).json(response);
     } catch (error) {
       res.status(401).json({
-        message: error instanceof Error ? error.message : "Token verification failed",
+        message:
+          error instanceof Error ? error.message : "Token verification failed",
       });
     }
   };
