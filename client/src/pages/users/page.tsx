@@ -1,3 +1,20 @@
+import PageHeader from "@/components/ui/PageHeader";
+import UsersListingPage from "./components/users.listing";
+
 export default function UsersPage() {
-  return <h1>users page</h1>;
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <PageHeader
+        title="Usuarios"
+        description="Gestiona los usuarios y permisos del sistema"
+        buttonProps={[
+          {
+            to: "/auth/sign-up",
+            text: "Nuevo usuario",
+          },
+        ]}
+      />
+      <UsersListingPage />
+    </div>
+  );
 }

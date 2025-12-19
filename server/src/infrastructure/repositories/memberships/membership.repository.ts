@@ -4,7 +4,16 @@ import { BaseRepository } from "../base.repository";
 
 export class MembershipRepository extends BaseRepository<Membership, string> {
   constructor() {
-    super(prisma.membership);
+    super(prisma.membership)
+  }
+
+  async findAll(): Promise<Membership[]> {
+    return this.model.findMany({
+      include: {
+        member: true,
+        plan: true,
+      },
+    });
   }
 
   async findActiveByMemberId(memberId: string) {

@@ -17,21 +17,21 @@ const EditMemberPage = lazy(() => import("./pages/members/[id]/editar/page"));
 
 // Plan Routes
 const PlansPage = lazy(() => import("./pages/plans/page"));
-// const NewPlanPage = lazy(() => import("./pages/plans/nuevo/page"));
-// const PlanDetailPage = lazy(() => import("./pages/plans/[id]/page"));
-// const EditPlanPage = lazy(() => import("./pages/plans/[id]/editar/page"));
+const NewPlanPage = lazy(() => import("./pages/plans/nuevo/page"));
+const PlanDetailPage = lazy(() => import("./pages/plans/[id]/page"));
+const EditPlanPage = lazy(() => import("./pages/plans/[id]/editar/page"));
 
 // Membership Routes
 const MembershipsPage = lazy(() => import("./pages/memberships/page"));
-// const NewMembershipPage = lazy(() => import("./pages/memberships/nuevo/page"));
-// const MembershipDetailPage = lazy(() => import("./pages/memberships/[id]/page"));
-// const EditMembershipPage = lazy(() => import("./pages/memberships/[id]/editar/page"));
+const NewMembershipPage = lazy(() => import("./pages/memberships/nuevo/page"));
+const MembershipDetailPage = lazy(() => import("./pages/memberships/[id]/page"));
+const EditMembershipPage = lazy(() => import("./pages/memberships/[id]/editar/page"));
 
 // User Routes
 const UsersPage = lazy(() => import("./pages/users/page"));
-// const NewUserPage = lazy(() => import("./pages/users/nuevo/page"));
-// const UserDetailPage = lazy(() => import("./pages/users/[id]/page"));
-// const EditUserPage = lazy(() => import("./pages/users/[id]/editar/page"));
+const NewUserPage = lazy(() => import("./pages/users/nuevo/page"));
+const UserDetailPage = lazy(() => import("./pages/users/[id]/page"));
+const EditUserPage = lazy(() => import("./pages/users/[id]/editar/page"));
 
 // Other routes
 const UnauthorizedPage = lazy(() => import("./pages/auth/unauthorized/page"));
@@ -75,13 +75,36 @@ function App() {
               />
               {/* PLANS ROUTES */}
               <Route path="/admin/dashboard/planes" element={<PlansPage />} />
+              <Route path="/admin/dashboard/planes/nuevo" element={<NewPlanPage />} />
+              <Route path="/admin/dashboard/planes/:id" element={<PlanDetailPage />} />
+              <Route path="/admin/dashboard/planes/:id/editar" element={<EditPlanPage />} />
+              
               {/* MEMBERSHIPS ROUTES */}
               <Route
                 path="/admin/dashboard/membresias"
                 element={<MembershipsPage />}
               />
+              <Route
+                path="/admin/dashboard/membresias/nuevo"
+                element={<NewMembershipPage />}
+              />
+              <Route
+                path="/admin/dashboard/membresias/:id"
+                element={<MembershipDetailPage />}
+              />
+              <Route
+                path="/admin/dashboard/membresias/:id/editar"
+                element={<EditMembershipPage />}
+              />
+              
               {/* USERS ROUTES */}
               <Route path="/admin/dashboard/usuarios" element={<UsersPage />} />
+              <Route path="/admin/dashboard/usuarios/nuevo" element={<NewUserPage />} />
+              <Route path="/admin/dashboard/usuarios/:id" element={<UserDetailPage />} />
+              <Route
+                path="/admin/dashboard/usuarios/:id/editar"
+                element={<EditUserPage />}
+              />
             </Route>
           </Route>
           <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -3,26 +3,30 @@ const BASE_API_URL = "http://localhost:4000/api";
 export async function apiFetch<T>(
   path: string,
   method: string,
-  body?: BodyInit | null | undefined,
+  body?: any,
   headers?: HeadersInit | undefined
 ): Promise<T> {
-  const isJson =
-    body &&
-    typeof body === "object" &&
-    !(body instanceof FormData) &&
-    !(body instanceof URLSearchParams);
   const config: RequestInit = {
     method,
     headers: {
-      ...(isJson ? { "Content-Type": "application/json" } : {}),
+      "Content-Type": "application/json",
       ...headers,
     },
-    body: isJson ? JSON.stringify(body) : body,
+    body: body && typeof body !== "string" ? JSON.stringify(body) : body,
   };
 
   const response = await fetch(`${BASE_API_URL}${path}`, config);
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    let errorMessage = `API request failed with status ${response.status}`;
+    try {
+        const errorData = await response.json();
+        if (errorData.message) {
+            errorMessage = errorData.message;
+        }
+    } catch (error) {
+        throw new Error(error.message);
+    }
+    throw new Error(errorMessage);
   }
   return response.json();
 }

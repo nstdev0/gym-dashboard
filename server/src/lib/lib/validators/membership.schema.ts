@@ -15,6 +15,8 @@ export const createMembershipSchema = membershipSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  startDate: true,
+  endDate: true,
 });
 
 export const updateMembershipSchema = createMembershipSchema.partial();

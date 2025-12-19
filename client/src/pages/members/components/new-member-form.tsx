@@ -62,7 +62,7 @@ export default function NewMemberForm() {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombre</FieldLabel>
+                <FieldLabel htmlFor="firstName">Nombres <span className="text-destructive">*</span></FieldLabel>
                 <Input
                   {...register("firstName")}
                   placeholder="Nombre"
@@ -82,7 +82,7 @@ export default function NewMemberForm() {
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="gender">Genero</FieldLabel>
+                <FieldLabel htmlFor="gender">Genero <span className="text-destructive">*</span></FieldLabel>
                 <Controller
                   control={control}
                   name="gender"
@@ -138,7 +138,7 @@ export default function NewMemberForm() {
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docType">Tipo de documento</FieldLabel>
+                <FieldLabel htmlFor="docType">Tipo de documento <span className="text-destructive">*</span></FieldLabel>
                 <Controller
                   control={control}
                   name="docType"
@@ -163,7 +163,7 @@ export default function NewMemberForm() {
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docNumber">Numero de documento</FieldLabel>
+                <FieldLabel htmlFor="docNumber">Numero de documento <span className="text-destructive">*</span></FieldLabel>
                 <Input
                   type="text"
                   {...register("docNumber")}

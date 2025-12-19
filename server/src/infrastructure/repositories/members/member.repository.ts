@@ -7,6 +7,24 @@ export class MemberRepository extends BaseRepository<Member, string> {
     super(prisma.member);
   }
 
+  async findAll(): Promise<Member[]> {
+    return this.model.findMany({
+      include: {
+        memberships: {
+          where: {
+            status: "ACTIVE",
+          },
+          include: {
+            plan: true,
+          },
+        },
+      },
+      orderBy: {
+        lastName: 'asc',
+      }
+    });
+  }
+
   async findUniqueDocument(documentData: {
     docType: DocType;
     docNumber: string;

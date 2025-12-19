@@ -43,8 +43,34 @@ app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Page Not Found",
+    message: "Route not found",
   });
 });
+
+// Relationship Error Handler (just for now...)
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Global Error:", err);
+
+    if (err.code === "P2003") {
+      return res.status(400).json({
+        success: false,
+        error: "Constraint violation",
+        message:
+          "No se puede eliminar este registro porque tiene relaciones activas (ej. membresias, pagos).",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: err.message || "Internal Server Error",
+    });
+  }
+);
 
 export default app;

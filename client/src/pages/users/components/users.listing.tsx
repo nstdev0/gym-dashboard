@@ -13,25 +13,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import type { MemberSchema } from "../../../../../server/src/lib/lib/validators/member.schema";
+import { Link } from "react-router-dom";
+import type { UserSchema } from "../../../../../server/src/lib/lib/validators/user.schema";
 import { CircleCheck, CircleX } from "lucide-react";
 
-// Custom type locally extended to include relations
-interface ExtendedMember extends MemberSchema {
-    memberships?: {
-        plan: {
-            name: string;
-        }
-    }[]
-}
-
-export default function MembersListingPage() {
+export default function UsersListingPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<ExtendedMember[]>([]);
+  const [data, setData] = useState<UserSchema[]>([]);
   const [auth, setAuth] = useState<boolean>(false);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,13 +29,13 @@ export default function MembersListingPage() {
         if (!token) {
           throw new Error("No se encontro token");
         }
-        const data: ExtendedMember[] = await apiFetch("/members", "GET", null, {
+        const data: UserSchema[] = await apiFetch("/users", "GET", null, {
           Authorization: `Bearer ${token}`,
         });
         setData(data);
         setAuth(true);
       } catch (error) {
-        console.error("Error cargando miembros:", error);
+        console.error("Error cargando usuarios:", error);
       } finally {
         setIsLoading(false);
       }
@@ -57,7 +46,7 @@ export default function MembersListingPage() {
 
   const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar este miembro?");
+      const confirm = window.confirm("Estas seguro de eliminar este usuario?");
       if (!confirm) {
         return;
       }
@@ -67,25 +56,25 @@ export default function MembersListingPage() {
       }
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
-        throw new Error("No tienes permiso para eliminar miembros");
+        alert("No tienes permiso para eliminar usuarios"); 
+        return;
       }
-      await apiFetch(`/members/${id}`, "DELETE", null, {
+      await apiFetch(`/users/${id}`, "DELETE", null, {
         Authorization: `Bearer ${token}`,
       });
-      const newData = data.filter((member) => member.id !== id);
+      const newData = data.filter((user) => user.id !== id);
       setData(newData);
     } catch (error: any) {
-      console.error("Error eliminando miembro:", error);
-      alert(error.message || "Error al eliminar miembro");
+      console.error("Error eliminando usuario:", error);
+      alert(error.message || "Error al eliminar usuario");
     }
-    navigate("/admin/dashboard/miembros");
   };
 
   return (
     <div className="space-y-4">
       {isLoading && (
         <div className="p-4 text-center text-muted-foreground">
-          Cargando miembros...
+          Cargando usuarios...
         </div>
       )}
       {!auth && (
@@ -97,46 +86,34 @@ export default function MembersListingPage() {
           <CardContent className="p-0">
             {data.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
-                No hay miembros registrados.
+                No hay usuarios registrados.
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead></TableHead>
-                    <TableHead className="pl-6">Nombres</TableHead>
-                    <TableHead>Apellidos</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>Telefono</TableHead>
-                    <TableHead>Plan activo</TableHead>
+                    <TableHead className="pl-6">Nombre</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Rol</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right pr-6">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((member) => {
-                    const activePlan = member.memberships?.[0]?.plan?.name;
-
+                  {data.map((user) => {
                     return (
-                      <TableRow key={member.id} className="hover:bg-muted/5">
-                        <TableCell>{data.indexOf(member) + 1}</TableCell>
+                      <TableRow key={user.id} className="hover:bg-muted/5">
+                        <TableCell>{data.indexOf(user) + 1}</TableCell>
                         <TableCell className="pl-6 font-medium">
-                          {member.firstName}
+                          {user.firstName} {user.lastName || ""}
                         </TableCell>
-                        <TableCell>{member.lastName || "-"}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {member.docType} {member.docNumber}
-                        </TableCell>
-                        <TableCell>{member.phoneNumber || "-"}</TableCell>
+                        <TableCell>{user.username || "-"}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.role}</TableCell>
                         <TableCell>
-                          {activePlan ? (
-                             <span className="font-medium text-primary">{activePlan}</span>
-                          ) : (
-                              <span className="text-muted-foreground text-sm">Sin plan</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {member.isActive ? (
+                          {user.isActive ? (
                             <CircleCheck className="w-4 h-4 text-green-500" />
                           ) : (
                             <CircleX className="w-4 h-4 text-red-500" />
@@ -144,20 +121,19 @@ export default function MembersListingPage() {
                         </TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
-                            <Link to={`/admin/dashboard/miembros/${member.id}`}>
+                            <Link to={`/admin/dashboard/usuarios/${user.id}`}>
                               <Button variant="ghost" size="sm">
                                 Ver
                               </Button>
                             </Link>
-                            <Link
-                              to={`/admin/dashboard/miembros/${member.id}/editar`}
-                            >
-                              <Button variant="outline" size="sm">
-                                Editar
-                              </Button>
-                            </Link>
+                            {/* Placeholder for Edit - if page exists or just to match look & feel */}
+                            <Link to={`/admin/dashboard/usuarios/${user.id}/editar`}>
+                                <Button variant="outline" size="sm">
+                                    Editar
+                                </Button>
+                            </Link> 
                             <Button
-                              onClick={() => handleDelete(member.id)}
+                              onClick={() => handleDelete(user.id!)}
                               variant="destructive"
                               size="sm"
                             >
