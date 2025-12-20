@@ -17,7 +17,7 @@ import {
   updateMembershipSchema,
   type MembershipSchema,
   type UpdateMembershipSchema,
-} from "../../../../../server/src/lib/lib/validators/membership.schema";
+} from "../../../../../server/src/lib/validators/membership.schema";
 
 export default function EditMembershipForm({ id }: { id: string }) {
   const navigate = useNavigate();

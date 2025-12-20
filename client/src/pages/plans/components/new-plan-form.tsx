@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import {
   createPlanSchema,
   type CreatePlanSchema,
-} from "../../../../../server/src/lib/lib/validators/plan.schema";
+} from "../../../../../server/src/lib/validators/plan.schema";
 
 export default function NewPlanForm() {
     const navigate = useNavigate()

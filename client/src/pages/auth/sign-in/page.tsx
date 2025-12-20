@@ -34,7 +34,7 @@ export default function SignInPage() {
       }>("/auth/sign-in", "POST", data);
       localStorage.setItem("token", response.token);
       localStorage.setItem("role", response.role);
-      navigate("/admin/dashboard/miembros");
+      navigate("/admin/dashboard/inicio");
     } catch (error) {
       throw new Error("Error al iniciar sesión", error as Error);
     }

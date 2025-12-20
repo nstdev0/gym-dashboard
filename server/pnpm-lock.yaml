@@ -29,12 +29,12 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
-      morgan:
-        specifier: ^1.10.1
-        version: 1.10.1
       mysql2:
         specifier: ^3.15.3
         version: 3.15.3
+      zod:
+        specifier: ^4.2.1
+        version: 4.2.1
     devDependencies:
       '@types/cors':
         specifier: ^2.8.19
@@ -45,12 +45,18 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      '@types/morgan':
+        specifier: ^1.9.10
+        version: 1.9.10
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      morgan:
+        specifier: ^1.10.1
+        version: 1.10.1
       prisma:
         specifier: ^7.1.0
         version: 7.1.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
@@ -342,6 +348,9 @@ packages:
 
   '@types/jsonwebtoken@9.0.10':
     resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+
+  '@types/morgan@1.9.10':
+    resolution: {integrity: sha512-sS4A1zheMvsADRVfT0lYbJ4S9lmsey8Zo2F7cnbYjWHP67Q0AwMYuuzLlkIM2N8gAbb9cubhIVFwcIN2XyYCkA==}
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
@@ -1006,6 +1015,9 @@ packages:
   zeptomatch@2.0.2:
     resolution: {integrity: sha512-H33jtSKf8Ijtb5BW6wua3G5DhnFjbFML36eFu+VdOoVY4HD9e7ggjqdM6639B+L87rjnR6Y+XeRzBXZdy52B/g==}
 
+  zod@4.2.1:
+    resolution: {integrity: sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==}
+
 snapshots:
 
   '@chevrotain/cst-dts-gen@10.5.0':
@@ -1243,6 +1255,10 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
+      '@types/node': 24.10.1
+
+  '@types/morgan@1.9.10':
+    dependencies:
       '@types/node': 24.10.1
 
   '@types/ms@2.1.0': {}
@@ -1947,3 +1963,5 @@ snapshots:
   zeptomatch@2.0.2:
     dependencies:
       grammex: 3.1.12
+
+  zod@4.2.1: {}

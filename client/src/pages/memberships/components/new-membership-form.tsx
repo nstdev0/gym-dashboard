@@ -2,7 +2,6 @@ import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,12 +17,14 @@ import { useEffect, useState } from "react";
 import {
   createMembershipSchema,
   type CreateMembershipSchema,
-} from "../../../../../server/src/lib/lib/validators/membership.schema";
+} from "../../../../../server/src/lib/validators/membership.schema";
+import type { MemberSchema } from "../../../../../server/src/lib/validators/member.schema";
+import type { PlanSchema } from "../../../../../server/src/lib/validators/plan.schema";
 
 export default function NewMembershipForm() {
     const navigate = useNavigate()
-    const [members, setMembers] = useState<any[]>([]); // Using any for simplicity as I don't import MemberSchema
-    const [plans, setPlans] = useState<any[]>([]);
+    const [members, setMembers] = useState<MemberSchema[]>([]);
+    const [plans, setPlans] = useState<PlanSchema[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,8 +34,8 @@ export default function NewMembershipForm() {
                     apiFetch("/members", "GET", null, { Authorization: `Bearer ${token}` }),
                     apiFetch("/plans", "GET", null, { Authorization: `Bearer ${token}` })
                 ]);
-                setMembers(membersData as any[]);
-                setPlans(plansData as any[]);
+                setMembers(membersData as MemberSchema[]);
+                setPlans(plansData as PlanSchema[]);
             } catch (error) {
                 console.error("Error fetching data", error);
             }
@@ -43,7 +44,6 @@ export default function NewMembershipForm() {
     }, []);
 
     const {
-        register,
         handleSubmit,
         control,
         formState: { isSubmitting, errors },

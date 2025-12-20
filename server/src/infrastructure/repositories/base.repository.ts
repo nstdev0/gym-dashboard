@@ -9,43 +9,92 @@ export interface Delegate<T> {
   delete(args: { where: any }): Promise<T>;
 }
 
+import { ConnectionError } from "../../domain/errors/connection-error";
+import { AppError } from "../../domain/errors/app-error";
+
 export abstract class BaseRepository<TEntity, Id>
   implements IBaseRepository<TEntity, Id>
 {
   constructor(protected readonly model: Delegate<TEntity>) {}
 
   async findAll(): Promise<TEntity[]> {
-    return this.model.findMany();
+    try {
+      return await this.model.findMany();
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async findById(id: Id): Promise<TEntity | null> {
-    return this.model.findUnique({
-      where: { id: id },
-    });
+    try {
+      return await this.model.findUnique({
+        where: { id: id },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async findUnique(where: Partial<TEntity>): Promise<TEntity | null> {
-    return this.model.findUnique({
-      where,
-    });
+    try {
+      return await this.model.findUnique({
+        where,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async create(data: any): Promise<TEntity> {
-    return this.model.create({
-      data,
-    });
+    try {
+      return await this.model.create({
+        data,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async update(id: Id, data: any): Promise<TEntity | null> {
-    return await this.model.update({
-      where: { id },
-      data,
-    });
+    try {
+      return await this.model.update({
+        where: { id },
+        data,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async delete(id: Id): Promise<TEntity | null> {
-    return await this.model.delete({
-      where: { id: id },
-    });
+    try {
+      return await this.model.delete({
+        where: { id: id },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  protected handleError(error: any): never {
+    if (error?.code === "P2002") {
+      throw new AppError("Unique constraint violation", 409);
+    }
+    if (error?.code === "P2003") {
+      throw new AppError(
+        "No se puede eliminar este registro porque tiene relaciones activas (ej. membresias, pagos).",
+        400
+      );
+    }
+    if (error?.code === "P2025") {
+      throw new AppError("Record not found", 404);
+    }
+    // Prisma connection errors usually start with P1
+    if (error?.code?.startsWith("P1")) {
+      throw new ConnectionError("Database connection failed");
+    }
+
+    console.error("Repository Error:", error);
+    throw new AppError("Database operation failed");
   }
 }

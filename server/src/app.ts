@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 
 import authRouter from "./routes/auth/auth.routes";
 import membersRouter from "./routes/members/member.routes";
@@ -8,6 +9,7 @@ import plansRouter from "./routes/plans/plan.routes";
 import membershipRouter from "./routes/memberships/membership.routes";
 
 import { verifyTokenMiddleware } from "./lib/api/jwt";
+import { errorHandler } from "./interface-adapters/middlewares/error-handler.middleware";
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(morgan("dev"));
 
 // Health check route
 app.get("/health", (req, res) => {
@@ -47,30 +50,7 @@ app.use((req, res) => {
   });
 });
 
-// Relationship Error Handler (just for now...)
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error("Global Error:", err);
-
-    if (err.code === "P2003") {
-      return res.status(400).json({
-        success: false,
-        error: "Constraint violation",
-        message:
-          "No se puede eliminar este registro porque tiene relaciones activas (ej. membresias, pagos).",
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: err.message || "Internal Server Error",
-    });
-  }
-);
+// Global Error Handler
+app.use(errorHandler);
 
 export default app;

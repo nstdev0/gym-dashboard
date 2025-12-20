@@ -18,7 +18,7 @@ import {
   updateMemberSchema,
   type MemberSchema,
   type UpdateMemberSchema,
-} from "../../../../../server/src/lib/lib/validators/member.schema";
+} from "../../../../../server/src/lib/validators/member.schema";
 import { Switch } from "@/components/ui/switch";
 
 export default function EditMemberForm({ id }: { id: string }) {

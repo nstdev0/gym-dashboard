@@ -17,7 +17,9 @@ export class AuthService {
       throw new Error("User already exists with this email");
     }
     
-    const existingUsername = await this.userRepository.findByUsername(data.username);
+    const existingUsername = data.username
+      ? await this.userRepository.findByUsername(data.username)
+      : null;
     if (existingUsername) {
       throw new Error("User already exists with this username");
     }

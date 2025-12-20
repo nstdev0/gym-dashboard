@@ -18,7 +18,7 @@ import {
   updateUserSchema,
   type UserSchema,
   type UpdateUserSchema,
-} from "../../../../../server/src/lib/lib/validators/user.schema";
+} from "../../../../../server/src/lib/validators/user.schema";
 import { Switch } from "@/components/ui/switch";
 
 export default function EditUserForm({ id }: { id: string }) {
@@ -53,7 +53,7 @@ export default function EditUserForm({ id }: { id: string }) {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
         );
-
+        userDetail.password = ""
         reset(userDetail);
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -191,10 +191,9 @@ export default function EditUserForm({ id }: { id: string }) {
                         <SelectValue placeholder="Rol" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="OWNER">Dueño</SelectItem>
-                        <SelectItem value="ADMIN">Administrador</SelectItem>
+                        <SelectItem value="OWNER">Owner</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
                         <SelectItem value="STAFF">Staff</SelectItem>
-                        <SelectItem value="TRAINER">Entrenador</SelectItem>
                       </SelectContent>
                     </Select>
                   )}

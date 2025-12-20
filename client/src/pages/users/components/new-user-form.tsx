@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import {
   createUserSchema,
   type CreateUserSchema,
-} from "../../../../../server/src/lib/lib/validators/user.schema";
+} from "../../../../../server/src/lib/validators/user.schema";
 
 export default function NewUserForm() {
     const navigate = useNavigate()

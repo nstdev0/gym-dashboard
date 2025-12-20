@@ -11,7 +11,7 @@ import {
   updatePlanSchema,
   type PlanSchema,
   type UpdatePlanSchema,
-} from "../../../../../server/src/lib/lib/validators/plan.schema";
+} from "../../../../../server/src/lib/validators/plan.schema";
 import { Switch } from "@/components/ui/switch";
 
 export default function EditPlanForm({ id }: { id: string }) {
