@@ -52,10 +52,10 @@ enum InvoiceStatus {
 // --- MODELS ---
 
 model Member {
-  id String @id @default(uuid())
+  id Int @id @default(autoincrement())
 
   firstName String
-  lastName  String?
+  lastName  String
   gender    Gender?
   birthDate DateTime? @db.Date
 
@@ -66,6 +66,7 @@ model Member {
   docNumber String
 
   phoneNumber String?
+  email       String? @unique
 
   isActive Boolean @default(true)
 
@@ -85,7 +86,8 @@ model Member {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id Int @id @default(autoincrement())
+
   role      Role
   firstName String
   lastName  String?
@@ -104,7 +106,8 @@ model User {
 }
 
 model Plan {
-  id          String  @id @default(uuid())
+  id Int @id @default(autoincrement())
+
   name        String  @unique
   description String?
 
@@ -124,11 +127,11 @@ model Plan {
 }
 
 model Membership {
-  id String @id @default(uuid())
+  id Int @id @default(autoincrement())
 
   // Claves foráneas
-  memberId String
-  planId   String
+  memberId Int
+  planId   Int
 
   startDate DateTime @db.Date
   endDate   DateTime @db.Date
@@ -146,19 +149,22 @@ model Membership {
 }
 
 model Invoice {
-  id           String  @id @default(uuid())
-  memberId     String
-  membershipId String?
+  id Int @id @default(autoincrement())
+
+  memberId     Int
+  membershipId Int?
 
   amount Decimal @db.Decimal(10, 2)
 
   issuedAt DateTime @default(now())
 
-  issuedBy  String
-  updatedBy String?
-  paidAt    DateTime?
-  status    InvoiceStatus
-  method    PaymentMethod
+  issuedBy  Int
+  updatedBy Int?
+
+  paidAt DateTime?
+
+  status InvoiceStatus
+  method PaymentMethod
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,39 +1,44 @@
-export const PaymentMethod = {
-  CREDIT_CARD: "credit_card",
-  DEBIT_CARD: "debit_card",
-  CASH: "cash",
-  BANK_TRANSFER: "bank_transfer",
-  YAPE: "yape",
-  PLIN: "plin",
-  OTHER: "other",
-} as const;
-export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
+import z from "zod";
+import { baseZ } from "./_base";
+import { InvoiceStatusEnum } from "../enums/invoice-status.enum";
+import { PaymentMethodEnum } from "../enums/payment-method.enum";
 
-export const InvoiceStatus = {
-  PENDING: "pending",
-  PAID: "paid",
-  CANCELLED: "cancelled",
-  PARTIALLY_PAID: "partially_paid",
-} as const;
-export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
+export const InvoiceSchema = z
+  .object({
+    memberId: z.number("El ID del miembro debe ser un número"),
+    membershipId: z
+      .number("El ID de la membresía debe ser un número")
+      .optional()
+      .nullable(),
+    amount: z
+      .number("El monto debe ser un número")
+      .positive("El monto debe ser un número positivo"),
+    issuedAt: z.date("La fecha de emisión es inválida"),
+    issuedBy: z
+      .number("El ID del emisor debe ser un número")
+      .optional()
+      .nullable(),
+    paidAt: z.date("La fecha de pago es inválida").optional().nullable(),
+    status: InvoiceStatusEnum,
+    method: PaymentMethodEnum,
+  })
+  .extend(baseZ.shape);
 
-export type Invoice = {
-  id: string;
+export type Invoice = z.infer<typeof InvoiceSchema>;
 
-  memberId: string;
-  membershipId?: string;
+export const InvoiceInsertSchema = InvoiceSchema.pick({
+  memberId: true,
+  membershipId: true,
+  amount: true,
+  issuedAt: true,
+  issuedBy: true,
+  paidAt: true,
+  status: true,
+  method: true,
+});
 
-  amount: number; // TODO: MEJORAR PARA USAR DECIMALES, PUEDE SER CON DECIMAL.JS
+export type InvoiceInsert = z.infer<typeof InvoiceInsertSchema>;
 
-  issuedAt: Date;
-  paidAt: Date | null;
+export const InvoiceUpdateSchema = InvoiceInsertSchema.partial();
 
-  issuedBy: string;
-  updatedBy: string;
-
-  status: InvoiceStatus;
-  method: PaymentMethod;
-
-  createdAt: Date;
-  updatedAt: Date;
-};
+export type InvoiceUpdate = z.infer<typeof InvoiceUpdateSchema>;

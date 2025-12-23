@@ -1,23 +1,29 @@
-export const MembershipStatus = {
-  ACTIVE: "ACTIVE",
-  INACTIVE: "INACTIVE",
-  EXPIRED: "EXPIRED",
-  PAUSED: "PAUSED",
-} as const;
-export type MembershipStatus =
-  (typeof MembershipStatus)[keyof typeof MembershipStatus];
+import z from "zod";
+import { baseZ } from "./_base";
+import { MembershipStatusEnum } from "../enums/membership-status.enum";
 
-export type Membership = {
-  id: string;
+export const membershipSchema = z
+  .object({
+    memberId: z.number("El ID del miembro es inválido"),
+    planId: z.number("El ID del plan es inválido"),
+    startDate: z.date("La fecha de inicio es inválida"),
+    endDate: z.date("La fecha de fin es inválida"),
+    status: MembershipStatusEnum,
+  })
+  .extend(baseZ.shape);
 
-  memberId: string;
-  planId: string;
+export type Membership = z.infer<typeof membershipSchema>;
 
-  startDate: Date;
-  endDate: Date;
+export const membershipInsertSchema = membershipSchema.pick({
+  memberId: true,
+  planId: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+});
 
-  status: MembershipStatus;
+export type MembershipInsert = z.infer<typeof membershipInsertSchema>;
 
-  createdAt: Date;
-  updatedAt: Date;
-};
+export const membershipUpdateSchema = membershipInsertSchema.partial();
+
+export type MembershipUpdate = z.infer<typeof membershipUpdateSchema>;
