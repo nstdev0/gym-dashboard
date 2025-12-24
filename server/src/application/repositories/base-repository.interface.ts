@@ -1,7 +1,13 @@
-export interface IBaseRepository<T, Id> {
-  findAll(): Promise<T[]>;
-  findById(id: Id): Promise<T | null>;
-  create(data: any): Promise<T>;
-  update(id: Id, data: any): Promise<T | null>;
-  delete(id: Id): Promise<T | null>;
+export interface IBaseRepository<TEntity, TFilters> {
+  findAll(request: IPageableRequest<TFilters>): Promise<TEntity[]>;
+  findById(id: string): Promise<TEntity | null>;
+  create(data: any): Promise<TEntity>;
+  update(id: string, data: any): Promise<TEntity | null>;
+  delete(id: string): Promise<TEntity | null>;
+}
+
+export interface IPageableRequest<TFilters = Record<string, unknown>> {
+  page: number;
+  pageSize: number;
+  filters?: TFilters;
 }

@@ -3,10 +3,18 @@ import { lazy, Suspense } from "react";
 import DashboardPage from "./pages/dashboard/page";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 import Layout from "./components/ui/Layout";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60,
+    },
+  },
+});
 
 // Auth Routes
 const SignInPage = lazy(() => import("./pages/auth/sign-in/page"));
-const SignUpPage = lazy(() => import("./pages/auth/sign-up/page"));
 // const LogoutPage = lazy(() => import("./pages/auth/logout/page"));
 
 // Member Routes
@@ -24,8 +32,12 @@ const EditPlanPage = lazy(() => import("./pages/plans/[id]/editar/page"));
 // Membership Routes
 const MembershipsPage = lazy(() => import("./pages/memberships/page"));
 const NewMembershipPage = lazy(() => import("./pages/memberships/nuevo/page"));
-const MembershipDetailPage = lazy(() => import("./pages/memberships/[id]/page"));
-const EditMembershipPage = lazy(() => import("./pages/memberships/[id]/editar/page"));
+const MembershipDetailPage = lazy(
+  () => import("./pages/memberships/[id]/page")
+);
+const EditMembershipPage = lazy(
+  () => import("./pages/memberships/[id]/editar/page")
+);
 
 // User Routes
 const UsersPage = lazy(() => import("./pages/users/page"));
@@ -39,18 +51,18 @@ const NotFoundPage = lazy(() => import("./pages/not-found/page"));
 
 function App() {
   return (
-    <div>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          {/* PUBLIC ROUTES */}
-          <Route path="/auth/sign-in" element={<SignInPage />} />
-          {/* <Route path="/logout" element={<LogoutPage />}/></Route> */}
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            {/* PUBLIC ROUTES */}
+            <Route path="/auth/sign-in" element={<SignInPage />} />
+            {/* <Route path="/logout" element={<LogoutPage />}/></Route> */}
 
-          {/* PROTECTED ROUTES */}
-          <Route element={<Layout />}>
-            <Route element={<ProtectedRoutes />}>
-              {/* REGISTER USER ROUTE, ONLY OWNER ROLE IS ABLE TO REGISTER A NEW USER */}
-              <Route path="/auth/sign-up" element={<SignUpPage />} />
+            {/* PROTECTED ROUTES */}
+            <Route element={<Layout />}>
+              {/* <Route element={<ProtectedRoutes />}> */}
+
               {/* DASHBOARD ROUTE */}
               <Route
                 path="/admin/dashboard/inicio"
@@ -75,10 +87,19 @@ function App() {
               />
               {/* PLANS ROUTES */}
               <Route path="/admin/dashboard/planes" element={<PlansPage />} />
-              <Route path="/admin/dashboard/planes/nuevo" element={<NewPlanPage />} />
-              <Route path="/admin/dashboard/planes/:id" element={<PlanDetailPage />} />
-              <Route path="/admin/dashboard/planes/:id/editar" element={<EditPlanPage />} />
-              
+              <Route
+                path="/admin/dashboard/planes/nuevo"
+                element={<NewPlanPage />}
+              />
+              <Route
+                path="/admin/dashboard/planes/:id"
+                element={<PlanDetailPage />}
+              />
+              <Route
+                path="/admin/dashboard/planes/:id/editar"
+                element={<EditPlanPage />}
+              />
+
               {/* MEMBERSHIPS ROUTES */}
               <Route
                 path="/admin/dashboard/membresias"
@@ -96,22 +117,34 @@ function App() {
                 path="/admin/dashboard/membresias/:id/editar"
                 element={<EditMembershipPage />}
               />
-              
+
               {/* USERS ROUTES */}
+              {/* REGISTER USER ROUTE, ONLY OWNER ROLE IS ABLE TO REGISTER A NEW USER */}
+              <Route
+                path="/admin/dashboard/usuarios/nuevo"
+                element={<NewUserPage />}
+              />
               <Route path="/admin/dashboard/usuarios" element={<UsersPage />} />
-              <Route path="/admin/dashboard/usuarios/nuevo" element={<NewUserPage />} />
-              <Route path="/admin/dashboard/usuarios/:id" element={<UserDetailPage />} />
+              <Route
+                path="/admin/dashboard/usuarios/nuevo"
+                element={<NewUserPage />}
+              />
+              <Route
+                path="/admin/dashboard/usuarios/:id"
+                element={<UserDetailPage />}
+              />
               <Route
                 path="/admin/dashboard/usuarios/:id/editar"
                 element={<EditUserPage />}
               />
+              {/* </Route> */}
             </Route>
-          </Route>
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
-    </div>
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </div>
+    </QueryClientProvider>
   );
 }
 

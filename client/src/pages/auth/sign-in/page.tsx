@@ -31,7 +31,10 @@ export default function SignInPage() {
       const response: { token: string; role: string } = await apiFetch<{
         token: string;
         role: string;
-      }>("/auth/sign-in", "POST", data);
+      }>("/auth/sign-in", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
       localStorage.setItem("token", response.token);
       localStorage.setItem("role", response.role);
       navigate("/admin/dashboard/inicio");

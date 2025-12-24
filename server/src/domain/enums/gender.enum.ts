@@ -2,7 +2,7 @@ import z from "zod";
 
 export const GenderEnum = z.enum(["MALE", "FEMALE"], {
   error: () => {
-    return "El género debe ser MALE o FEMALE";
+    return "El género debe ser Masculino o Femenino";
   },
 });
 

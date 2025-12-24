@@ -1,13 +1,20 @@
-import { DocType, Member } from "../../../domain/entities/member";
+import { IPageableRequest } from "../../../application/repositories/base-repository.interface";
+import { Member } from "../../../domain/entities/member";
+import { DocType } from "../../../domain/enums/doctype.enum";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
 
-export class MemberRepository extends BaseRepository<Member, string> {
+export interface MemberFilters {
+  search?: string;
+  isActive?: boolean;
+}
+
+export class MemberRepository extends BaseRepository<Member, MemberFilters> {
   constructor() {
     super(prisma.member);
   }
 
-  async findAll(): Promise<Member[]> {
+  async findAll(request: IPageableRequest<MemberFilters>): Promise<Member[]> {
     return this.model.findMany({
       include: {
         memberships: {
@@ -19,9 +26,8 @@ export class MemberRepository extends BaseRepository<Member, string> {
           },
         },
       },
-      orderBy: {
-        lastName: 'asc',
-      }
+      skip: (request.page - 1) * request.pageSize,
+      take: request.pageSize,
     });
   }
 

@@ -1,9 +1,6 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,25 +11,12 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { MembershipSchema } from "../../../../../server/src/lib/lib/validators/membership.schema";
 import { CircleCheck, CircleX } from "lucide-react";
-
-// Extend the schema to include the populated relations for display
-interface PopulatedMembership extends MembershipSchema {
-    member?: {
-        firstName: string;
-        lastName: string;
-        docNumber: string;
-    };
-    plan?: {
-        name: string;
-        price: number;
-    }
-}
+import type { Membership } from "../../../../../server/src/domain/entities/membership";
 
 export default function MembershipsListingPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<PopulatedMembership[]>([]);
+  const [data, setData] = useState<Membership[]>([]);
   const [auth, setAuth] = useState<boolean>(false);
 
   useEffect(() => {
@@ -42,9 +26,7 @@ export default function MembershipsListingPage() {
         if (!token) {
           throw new Error("No se encontro token");
         }
-        const data: PopulatedMembership[] = await apiFetch("/memberships", "GET", null, {
-          Authorization: `Bearer ${token}`,
-        });
+        const data: Membership[] = await apiFetch("/memberships");
         setData(data);
         setAuth(true);
       } catch (error) {
@@ -59,7 +41,9 @@ export default function MembershipsListingPage() {
 
   const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar esta membresia?");
+      const confirm = window.confirm(
+        "Estas seguro de eliminar esta membresia?"
+      );
       if (!confirm) {
         return;
       }
@@ -69,17 +53,21 @@ export default function MembershipsListingPage() {
       }
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
-         alert("No tienes permiso para eliminar membresias");
-         return;
+        alert("No tienes permiso para eliminar membresias");
+        return;
       }
-      await apiFetch(`/memberships/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/memberships/${id}`, {
+        method: "DELETE",
       });
       const newData = data.filter((membership) => membership.id !== id);
       setData(newData);
     } catch (error) {
-        console.error("Error eliminando membresia:", error);
-        alert(error.message || "Error al eliminar membresia");
+      let errorMessage = "Error al eliminar membresia";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      console.error("Error eliminando membresia:", error);
+      alert(errorMessage || "Error al eliminar membresia");
     }
   };
 
@@ -117,52 +105,68 @@ export default function MembershipsListingPage() {
                 <TableBody>
                   {data.map((membership) => {
                     return (
-                      <TableRow key={membership.id} className="hover:bg-muted/5">
+                      <TableRow
+                        key={membership.id}
+                        className="hover:bg-muted/5"
+                      >
                         <TableCell>{data.indexOf(membership) + 1}</TableCell>
                         <TableCell className="pl-6 font-medium">
                           {membership.member ? (
-                              <>
-                                {membership.member.firstName} {membership.member.lastName}
-                              </>
+                            <>
+                              {membership.member.firstName}{" "}
+                              {membership.member.lastName}
+                            </>
                           ) : (
-                              <span className="text-muted-foreground">{membership.memberId}</span>
+                            <span className="text-muted-foreground">
+                              {membership.memberId}
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
-                            {membership.plan ? (
-                                <>{membership.plan.name}</>
-                            ) : (
-                                <span className="text-muted-foreground">{membership.planId}</span>
-                            )}
+                          {membership.plan ? (
+                            <>{membership.plan.name}</>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {membership.planId}
+                            </span>
+                          )}
                         </TableCell>
-                        <TableCell>{new Date(membership.startDate).toLocaleDateString()}</TableCell>
-                        <TableCell>{new Date(membership.endDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                           {membership.status === 'ACTIVE' ? (
+                          {new Date(membership.startDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(membership.endDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {membership.status === "ACTIVE" ? (
                             <CircleCheck className="w-4 h-4 text-green-500" />
                           ) : (
                             <CircleX className="w-4 h-4 text-red-500" />
                           )}
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                            <div className="flex justify-end gap-2">
-                              {/* <Link to={`/admin/dashboard/membresias/${membership.id}`}>
-                                <Button variant="ghost" size="sm">
-                                    Ver
-                                </Button>
-                              </Link> */}
-                              <Link to={`/admin/dashboard/membresias/${membership.id}/editar`}>
-                                <Button variant="outline" size="sm">
-                                    Editar
-                                </Button>
-                              </Link>
-                              <Button
-                                onClick={() => handleDelete(membership.id!)}
-                                variant="destructive"
-                                size="sm"
-                              >
-                                Eliminar
+                          <div className="flex justify-end gap-2">
+                            <Link
+                              to={`/admin/dashboard/membresias/${membership.id}`}
+                            >
+                              <Button variant="ghost" size="sm">
+                                Ver
                               </Button>
+                            </Link>
+                            <Link
+                              to={`/admin/dashboard/membresias/${membership.id}/editar`}
+                            >
+                              <Button variant="outline" size="sm">
+                                Editar
+                              </Button>
+                            </Link>
+                            <Button
+                              onClick={() => handleDelete(membership.id!)}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              Eliminar
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>

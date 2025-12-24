@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,12 +20,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  updateMemberSchema,
-  type MemberSchema,
-  type UpdateMemberSchema,
-} from "../../../../../server/src/lib/validators/member.schema";
 import { Switch } from "@/components/ui/switch";
+import {
+  memberUpdateSchema,
+  type Member,
+  type MemberUpdate,
+} from "../../../../../server/src/domain/entities/member";
 
 export default function EditMemberForm({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -31,38 +37,34 @@ export default function EditMemberForm({ id }: { id: string }) {
     control,
     reset,
     formState: { isSubmitting, errors },
-  } = useForm<UpdateMemberSchema>({
-    resolver: zodResolver(updateMemberSchema),
+  } = useForm({
+    resolver: zodResolver(memberUpdateSchema),
+    defaultValues: {
+      isActive: true,
+      gender: null,
+    },
   });
 
   useEffect(() => {
     const role = localStorage.getItem("role");
     if (role !== "OWNER") {
-      throw new Error("No tienes permiso para editar miembros"); // Ideally handle ui feedback
+      throw new Error("No tienes permiso para editar miembros");
     }
 
     const fetchMemberDetails = async () => {
       try {
-        const memberDetail: MemberSchema = await apiFetch(
-          `/members/${id}`,
-          "GET",
-          null,
-          {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
-        );
-
-        // Prepara los datos para el form
-        // birthDate viene como string ISO o Date, el input date necesita YYYY-MM-DD
+        const memberDetail: Member = await apiFetch(`/members/${id}`);
         let formattedDate: string | undefined = undefined;
         if (memberDetail.birthDate) {
-           formattedDate = new Date(memberDetail.birthDate).toISOString().split("T")[0];
+          formattedDate = new Date(memberDetail.birthDate)
+            .toISOString()
+            .split("T")[0];
         }
-
         reset({
           ...memberDetail,
-          birthDate: formattedDate, 
+          birthDate: formattedDate,
         });
+
       } catch (error) {
         console.error("Error fetching member:", error);
       } finally {
@@ -72,31 +74,33 @@ export default function EditMemberForm({ id }: { id: string }) {
     fetchMemberDetails();
   }, [id, reset]);
 
-  const onSubmit: SubmitHandler<UpdateMemberSchema> = async (data) => {
+  const onSubmit: SubmitHandler<MemberUpdate> = async (data) => {
     try {
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para editar miembros");
       }
-      
-      const updatedMemberData = {
-        ...data,
-      };
-
-      await apiFetch(`/members/${id}`, "PUT", updatedMemberData, {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      await apiFetch(`/members/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
       navigate("/admin/dashboard/miembros");
     } catch (error) {
+      let errorMessage = "Error al actualizar miembro";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       console.error("Error updating member", error);
-      alert("Error al actualizar miembro")
+      alert(errorMessage);
     }
   };
 
-  
   const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar este miembro?")
+      const confirm = window.confirm("Estas seguro de eliminar este miembro?");
       if (!confirm) {
         return;
       }
@@ -108,63 +112,63 @@ export default function EditMemberForm({ id }: { id: string }) {
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para eliminar miembros");
       }
-      await apiFetch(`/members/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/members/${id}`, {
+        method: "DELETE",
       });
-      const newData = data.filter((member) => member.id !== id);
-      setData(newData);
     } catch (error) {
+      let errorMessage = "Error al eliminar miembro";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       console.error("Error eliminando miembro:", error);
+      alert(errorMessage);
     }
     navigate("/admin/dashboard/miembros");
-  }
-  
+  };
+
   if (isLoading) {
     return <div className="p-4 text-center">Cargando datos del miembro...</div>;
   }
-  
+
   return (
     <Card className="m-auto w-full max-w-2xl border-border/60">
       <CardHeader>
         <CardTitle>Editar Miembro</CardTitle>
-        <CardDescription>
-          Actualiza la información del miembro.
-        </CardDescription>
+        <CardDescription>Actualiza la información del miembro.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombres <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder="Nombres"
-                />
+                <FieldLabel htmlFor="firstName">
+                  Nombres <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input {...register("firstName")} placeholder="Nombres" />
                 {errors.firstName && (
-                  <span className="text-red-500 text-sm">{errors.firstName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.firstName.message}
+                  </span>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="lastName">Apellidos</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder="Apellidos"
-                />
+                <Input {...register("lastName")} placeholder="Apellidos" />
                 {errors.lastName && (
-                  <span className="text-red-500 text-sm">{errors.lastName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.lastName.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="gender">Genero <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="gender">
+                  Genero <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="gender"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Genero" />
                       </SelectTrigger>
@@ -176,17 +180,18 @@ export default function EditMemberForm({ id }: { id: string }) {
                   )}
                 />
                 {errors.gender && (
-                  <span className="text-red-500 text-sm">{errors.gender.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.gender.message}
+                  </span>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="birthDate">Fecha de nacimiento</FieldLabel>
-                <Input
-                  type="date"
-                  {...register("birthDate")}
-                />
+                <Input type="date" {...register("birthDate")} />
                 {errors.birthDate && (
-                  <span className="text-red-500 text-sm">{errors.birthDate.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.birthDate.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -197,7 +202,9 @@ export default function EditMemberForm({ id }: { id: string }) {
                   {...register("height", { valueAsNumber: true })}
                 />
                 {errors.height && (
-                  <span className="text-red-500 text-sm">{errors.height.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.height.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -208,52 +215,60 @@ export default function EditMemberForm({ id }: { id: string }) {
                   {...register("weight", { valueAsNumber: true })}
                 />
                 {errors.weight && (
-                  <span className="text-red-500 text-sm">{errors.weight.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.weight.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docType">Tipo de documento <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="docType">
+                  Tipo de documento <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="docType"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tipo de documento" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="DNI">DNI</SelectItem>
                         <SelectItem value="PASSPORT">Pasaporte</SelectItem>
-                        <SelectItem value="CE">Cédula de extranjería</SelectItem>
+                        <SelectItem value="CE">
+                          Cédula de extranjería
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {errors.docType && (
-                  <span className="text-red-500 text-sm">{errors.docType.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.docType.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docNumber">Numero de documento <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  type="text"
-                  {...register("docNumber")}
-                />
+                <FieldLabel htmlFor="docNumber">
+                  Numero de documento{" "}
+                  <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input type="text" {...register("docNumber")} />
                 {errors.docNumber && (
-                  <span className="text-red-500 text-sm">{errors.docNumber.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.docNumber.message}
+                  </span>
                 )}
               </Field>
               <Field className="md:col-span-2">
-                <FieldLabel htmlFor="phoneNumber">Numero de telefono</FieldLabel>
-                <Input
-                  type="tel"
-                  {...register("phoneNumber")}
-                />
+                <FieldLabel htmlFor="phoneNumber">
+                  Numero de telefono
+                </FieldLabel>
+                <Input type="tel" {...register("phoneNumber")} />
                 {errors.phoneNumber && (
-                  <span className="text-red-500 text-sm">{errors.phoneNumber.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.phoneNumber.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -266,9 +281,17 @@ export default function EditMemberForm({ id }: { id: string }) {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className={field.value ? "data-[state=checked]:bg-green-600" : "data-[state=unchecked]:bg-slate-300"}
+                        className={
+                          field.value
+                            ? "data-[state=checked]:bg-green-600"
+                            : "data-[state=unchecked]:bg-slate-300"
+                        }
                       />
-                      <span className={`text-sm font-medium ${field.value ? "text-green-600" : "text-slate-500"}`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          field.value ? "text-green-600" : "text-slate-500"
+                        }`}
+                      >
                         {field.value ? "ACTIVO" : "INACTIVO"}
                       </span>
                     </div>
@@ -278,7 +301,12 @@ export default function EditMemberForm({ id }: { id: string }) {
             </div>
           </FieldSet>
           <div className="flex justify-end pt-4 gap-2">
-            <Button variant="destructive" type="button" disabled={isSubmitting} onClick={() => handleDelete(id)}>
+            <Button
+              variant="destructive"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleDelete(id)}
+            >
               Eliminar miembro
             </Button>
             <Button type="submit" disabled={isSubmitting}>

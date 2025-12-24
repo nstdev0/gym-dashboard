@@ -11,6 +11,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@/entities/*": [
+        "../server/src/domain/entities/*"
       ]
     },
 

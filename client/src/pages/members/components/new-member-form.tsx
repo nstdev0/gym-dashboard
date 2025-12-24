@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,87 +16,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// import { memberInsertSchema, type MemberInsert } from "@/entities/member";
+import {
+  memberInsertSchema,
+  type MemberInsert,
+} from "../../../../../server/src/domain/entities/member";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import {
-  createMemberSchema,
-  type CreateMemberSchema,
-} from "../../../../../server/src/lib/validators/member.schema";
-
 export default function NewMemberForm() {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
 
-    const {
-        register,
-        handleSubmit,
-        control,
-        formState: { isSubmitting, errors },
-      } = useForm<CreateMemberSchema>({
-        resolver: zodResolver(createMemberSchema),
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { isSubmitting, errors },
+  } = useForm<MemberInsert>({
+    resolver: zodResolver(memberInsertSchema),
+  });
+
+  const onSubmit: SubmitHandler<MemberInsert> = async (data) => {
+    try {
+      const role = localStorage.getItem("role");
+      if (role !== "OWNER") {
+        throw new Error("No tienes permiso para crear miembros");
+      }
+      await apiFetch("/members", {
+        method: "POST",
+        body: JSON.stringify(data),
       });
-    
-      const onSubmit: SubmitHandler<CreateMemberSchema> = async (data) => {
-        try {
-          const role = localStorage.getItem("role")
-          if (role !== "OWNER") {
-            throw new Error("No tienes permiso para crear miembros")
-          }
-          await apiFetch(
-            "/members",
-            "POST",
-            data,
-            {Authorization: `Bearer ${localStorage.getItem("token")}`}
-          );
-          navigate("/admin/dashboard/miembros");
-        } catch (error) {
-          throw new Error("Error al crear miembro", error as Error);
-        }
-      };
+      navigate("/admin/dashboard/miembros");
+    } catch (error) {
+      throw new Error("Error al crear miembro", error as Error);
+    }
+  };
 
-    return (
-    <Card className="m-auto w-full max-w-2xl border-border/60">
+  return (
+    <Card className="m-auto w-full max-w-5xl border-border/60">
       <CardHeader>
         <CardTitle>Registrar Nuevo Miembro</CardTitle>
         <CardDescription>
-          Ingresa los datos personales para registrar un nuevo miembro en el gimnasio.
+          Ingresa los datos personales para registrar un nuevo miembro en el
+          gimnasio.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <FieldSet>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombres <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder="Nombre"
-                />
+                <FieldLabel htmlFor="firstName">
+                  Nombres <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input {...register("firstName")} placeholder="Nombre" />
                 {errors.firstName && (
-                  <span className="text-red-500 text-sm">{errors.firstName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.firstName.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="lastName">Apellido</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder="Apellido"
-                />
+                <FieldLabel htmlFor="lastName">
+                  Apellido <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input {...register("lastName")} placeholder="Apellido" />
                 {errors.lastName && (
-                  <span className="text-red-500 text-sm">{errors.lastName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.lastName.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="gender">Genero <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="gender">
+                  Genero <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="gender"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Genero" />
                       </SelectTrigger>
@@ -102,17 +108,18 @@ export default function NewMemberForm() {
                   )}
                 />
                 {errors.gender && (
-                  <span className="text-red-500 text-sm">{errors.gender.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.gender.message}
+                  </span>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="birthDate">Fecha de nacimiento</FieldLabel>
-                <Input
-                  type="date"
-                  {...register("birthDate")}
-                />
+                <Input type="date" {...register("birthDate")} />
                 {errors.birthDate && (
-                  <span className="text-red-500 text-sm">{errors.birthDate.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.birthDate.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -123,7 +130,9 @@ export default function NewMemberForm() {
                   {...register("height", { valueAsNumber: true })}
                 />
                 {errors.height && (
-                  <span className="text-red-500 text-sm">{errors.height.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.height.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -134,52 +143,60 @@ export default function NewMemberForm() {
                   {...register("weight", { valueAsNumber: true })}
                 />
                 {errors.weight && (
-                  <span className="text-red-500 text-sm">{errors.weight.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.weight.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docType">Tipo de documento <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="docType">
+                  Tipo de documento <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="docType"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tipo de documento" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="DNI">DNI</SelectItem>
                         <SelectItem value="PASSPORT">Pasaporte</SelectItem>
-                        <SelectItem value="CE">Cédula de extranjería</SelectItem>
+                        <SelectItem value="CE">
+                          Cédula de extranjería
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {errors.docType && (
-                  <span className="text-red-500 text-sm">{errors.docType.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.docType.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="docNumber">Numero de documento <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  type="text"
-                  {...register("docNumber")}
-                />
+                <FieldLabel htmlFor="docNumber">
+                  Numero de documento{" "}
+                  <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input type="text" {...register("docNumber")} />
                 {errors.docNumber && (
-                  <span className="text-red-500 text-sm">{errors.docNumber?.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.docNumber?.message}
+                  </span>
                 )}
               </Field>
               <Field className="md:col-span-2">
-                <FieldLabel htmlFor="phoneNumber">Numero de telefono</FieldLabel>
-                <Input
-                  type="tel"
-                  {...register("phoneNumber")}
-                />
+                <FieldLabel htmlFor="phoneNumber">
+                  Numero de telefono
+                </FieldLabel>
+                <Input type="tel" {...register("phoneNumber")} />
                 {errors.phoneNumber && (
-                  <span className="text-red-500 text-sm">{errors.phoneNumber.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.phoneNumber.message}
+                  </span>
                 )}
               </Field>
             </div>

@@ -1,6 +1,4 @@
-import { CreateUserDTO, UpdateUserDTO } from "../../../domain/DTOs/user";
-import { Member } from "../../../domain/entities/member";
-import { User } from "../../../domain/entities/user";
+import { User, UserInsert, UserUpdate } from "../../../domain/entities/user";
 import { UserRepository } from "../../../infrastructure/repositories/users/user.repository";
 
 export class UserService {
@@ -11,7 +9,7 @@ export class UserService {
     return users;
   };
 
-  create = async (data: CreateUserDTO): Promise<User> => {
+  create = async (data: UserInsert): Promise<User> => {
     const existinUserEmail = await this.userRepository.findByEmail(data.email);
     const existingUserUsername = data.username
       ? await this.userRepository.findByUsername(data.username)
@@ -33,7 +31,7 @@ export class UserService {
     return user;
   };
 
-  update = async (id: string, data: UpdateUserDTO): Promise<User | null> => {
+  update = async (id: string, data: UserUpdate): Promise<User | null> => {
     const updatedUser = await this.userRepository.update(id, data);
     return updatedUser;
   };

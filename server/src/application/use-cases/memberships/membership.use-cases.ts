@@ -1,7 +1,7 @@
 import {
-  CreateMembershipDTO,
-  UpdateMembershipDTO,
-} from "../../../domain/DTOs/membership";
+  MembershipInsert,
+  MembershipUpdate,
+} from "../../../domain/entities/membership";
 import { MemberRepository } from "../../../infrastructure/repositories/members/member.repository";
 import { MembershipRepository } from "../../../infrastructure/repositories/memberships/membership.repository";
 import { PlanRepository } from "../../../infrastructure/repositories/plans/plan.repository";
@@ -17,7 +17,7 @@ export class MembershipService {
     return await this.membershipRepository.findAll();
   };
 
-  create = async (data: CreateMembershipDTO) => {
+  create = async (data: MembershipInsert) => {
     const existingMembership =
       await this.membershipRepository.findActiveByMemberId(data.memberId);
     if (existingMembership.length > 0) {
@@ -46,7 +46,7 @@ export class MembershipService {
     return await this.membershipRepository.findById(id);
   };
 
-  update = async (id: string, data: UpdateMembershipDTO) => {
+  update = async (id: string, data: MembershipUpdate) => {
     return await this.membershipRepository.update(id, data);
   };
 

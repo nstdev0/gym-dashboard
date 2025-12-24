@@ -1,9 +1,6 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,12 +11,12 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { PlanSchema } from "../../../../../server/src/lib/lib/validators/plan.schema";
 import { CircleCheck, CircleX } from "lucide-react";
+import type { Plan } from "@/entities/plan";
 
 export default function PlansListingPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<PlanSchema[]>([]);
+  const [data, setData] = useState<Plan[]>([]);
   const [auth, setAuth] = useState<boolean>(false);
 
   useEffect(() => {
@@ -29,9 +26,7 @@ export default function PlansListingPage() {
         if (!token) {
           throw new Error("No se encontro token");
         }
-        const data: PlanSchema[] = await apiFetch("/plans", "GET", null, {
-          Authorization: `Bearer ${token}`,
-        });
+        const data: Plan[] = await apiFetch("/plans");
         setData(data);
         setAuth(true);
       } catch (error) {
@@ -56,17 +51,22 @@ export default function PlansListingPage() {
       }
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
-         alert("No tienes permiso para eliminar planes");
-         return;
+        alert("No tienes permiso para eliminar planes");
+        return;
       }
-      await apiFetch(`/plans/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/plans/${id}`, {
+        method: "DELETE",
       });
       const newData = data.filter((plan) => plan.id !== id);
       setData(newData);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error eliminando plan:", error);
-      alert(error.message || "Error al eliminar plan");
+
+      let errorMessage = "Error desconocido al eliminar el plan";
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
+      alert(errorMessage);
     }
   };
 
@@ -112,7 +112,7 @@ export default function PlansListingPage() {
                         <TableCell>{plan.description || "-"}</TableCell>
                         <TableCell>{plan.price}</TableCell>
                         <TableCell>{plan.durationInDays}</TableCell>
-                         <TableCell>
+                        <TableCell>
                           {plan.isActive ? (
                             <CircleCheck className="w-4 h-4 text-green-500" />
                           ) : (
@@ -120,24 +120,26 @@ export default function PlansListingPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                            <div className="flex justify-end gap-2">
-                              <Link to={`/admin/dashboard/planes/${plan.id}`}>
-                                <Button variant="ghost" size="sm">
-                                    Ver
-                                </Button>
-                              </Link>
-                                <Link to={`/admin/dashboard/planes/${plan.id}/editar`}>
-                                <Button variant="outline" size="sm">
-                                    Editar
-                                </Button>
-                                </Link>
-                              <Button
-                                onClick={() => handleDelete(plan.id!)}
-                                variant="destructive"
-                                size="sm"
-                              >
-                                Eliminar
+                          <div className="flex justify-end gap-2">
+                            <Link to={`/admin/dashboard/planes/${plan.id}`}>
+                              <Button variant="ghost" size="sm">
+                                Ver
                               </Button>
+                            </Link>
+                            <Link
+                              to={`/admin/dashboard/planes/${plan.id}/editar`}
+                            >
+                              <Button variant="outline" size="sm">
+                                Editar
+                              </Button>
+                            </Link>
+                            <Button
+                              onClick={() => handleDelete(plan.id!)}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              Eliminar
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>

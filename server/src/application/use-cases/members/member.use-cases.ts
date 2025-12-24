@@ -1,15 +1,18 @@
 import { MemberRepository } from "../../../infrastructure/repositories/members/member.repository";
-import { Member } from "../../../domain/entities/member";
-import { CreateMemberDTO, UpdateMemberDTO } from "../../../domain/DTOs/member";
+import { Member, MemberInsert, MemberUpdate } from "../../../domain/entities/member";
 
 export class MembersService {
   constructor(private membersRepository: MemberRepository) {}
 
-  findAll = async (): Promise<Member[]> => {
-    return await this.membersRepository.findAll();
+  findAll = async (request: {
+    page: number;
+    pageSize: number;
+    filters: any;
+  }): Promise<Member[]> => {
+    return await this.membersRepository.findAll(request);
   };
 
-  create = async (data: CreateMemberDTO): Promise<Member> => {
+  create = async (data: MemberInsert): Promise<Member> => {
     const existingMemberDocument =
       await this.membersRepository.findUniqueDocument({
         docNumber: data.docNumber,
@@ -51,7 +54,7 @@ export class MembersService {
 
   update = async (
     id: string,
-    data: UpdateMemberDTO
+    data: MemberUpdate
   ): Promise<Member | null> => {
     return await this.membersRepository.update(id, data);
   };

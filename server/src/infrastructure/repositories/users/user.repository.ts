@@ -1,5 +1,4 @@
-import { CreateUserDTO, UpdateUserDTO } from "../../../domain/DTOs/user";
-import { User } from "../../../domain/entities/user";
+import { User, UserInsert, UserUpdate } from "../../../domain/entities/user";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
 import bcrypt from "bcrypt";
@@ -11,13 +10,13 @@ export class UserRepository extends BaseRepository<User, string> {
 
   saltRounds = 10;
 
-  async create(data: CreateUserDTO): Promise<User> {
+  async create(data: UserInsert): Promise<User> {
     const hashedPassword = await bcrypt.hash(data.password, this.saltRounds);
     data.password = hashedPassword;
     return this.model.create({ data });
   }
 
-  async update(id: string, data: UpdateUserDTO): Promise<User | null> {
+  async update(id: string, data: UserUpdate): Promise<User | null> {
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, this.saltRounds);
       data.password = hashedPassword;

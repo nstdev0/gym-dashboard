@@ -1,9 +1,6 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,12 +11,12 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { UserSchema } from "../../../../../server/src/lib/lib/validators/user.schema";
 import { CircleCheck, CircleX } from "lucide-react";
+import type { User } from "../../../../../server/src/domain/entities/user";
 
 export default function UsersListingPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<UserSchema[]>([]);
+  const [data, setData] = useState<User[]>([]);
   const [auth, setAuth] = useState<boolean>(false);
 
   useEffect(() => {
@@ -29,9 +26,7 @@ export default function UsersListingPage() {
         if (!token) {
           throw new Error("No se encontro token");
         }
-        const data: UserSchema[] = await apiFetch("/users", "GET", null, {
-          Authorization: `Bearer ${token}`,
-        });
+        const data: User[] = await apiFetch("/users");
         setData(data);
         setAuth(true);
       } catch (error) {
@@ -56,17 +51,21 @@ export default function UsersListingPage() {
       }
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
-        alert("No tienes permiso para eliminar usuarios"); 
+        alert("No tienes permiso para eliminar usuarios");
         return;
       }
-      await apiFetch(`/users/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/users/${id}`, {
+        method: "DELETE",
       });
       const newData = data.filter((user) => user.id !== id);
       setData(newData);
-    } catch (error: any) {
+    } catch (error) {
+      let errorMessage = "Error al eliminar usuario";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       console.error("Error eliminando usuario:", error);
-      alert(error.message || "Error al eliminar usuario");
+      alert(errorMessage);
     }
   };
 
@@ -127,11 +126,13 @@ export default function UsersListingPage() {
                               </Button>
                             </Link>
                             {/* Placeholder for Edit - if page exists or just to match look & feel */}
-                            <Link to={`/admin/dashboard/usuarios/${user.id}/editar`}>
-                                <Button variant="outline" size="sm">
-                                    Editar
-                                </Button>
-                            </Link> 
+                            <Link
+                              to={`/admin/dashboard/usuarios/${user.id}/editar`}
+                            >
+                              <Button variant="outline" size="sm">
+                                Editar
+                              </Button>
+                            </Link>
                             <Button
                               onClick={() => handleDelete(user.id!)}
                               variant="destructive"

@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,51 +19,51 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-
 import {
-  createUserSchema,
-  type CreateUserSchema,
-} from "../../../../../server/src/lib/validators/user.schema";
+  type UserRegister,
+  userRegisterSchema,
+} from "../../../../../server/src/domain/entities/user";
 
 export default function NewUserForm() {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
 
-    const {
-        register,
-        handleSubmit,
-        control,
-        formState: { isSubmitting, errors },
-      } = useForm<CreateUserSchema>({
-        resolver: zodResolver(createUserSchema) as any,
-        defaultValues: {
-            isActive: true,
-            role: "STAFF"
-        }
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { isSubmitting, errors },
+  } = useForm({
+    resolver: zodResolver(userRegisterSchema),
+    defaultValues: {
+      username: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "STAFF",
+    },
+  });
+
+  const onSubmit: SubmitHandler<UserRegister> = async (data) => {
+    try {
+      const role = localStorage.getItem("role");
+      if (role !== "OWNER") {
+        throw new Error("No tienes permiso para crear usuarios");
+      }
+      const { confirmPassword, ...userData } = data;
+      await apiFetch("/users", {
+        method: "POST",
+        body: JSON.stringify(userData),
       });
-    
-      const onSubmit: SubmitHandler<CreateUserSchema> = async (data) => {
-        try {
-          const role = localStorage.getItem("role")
-          if (role !== "OWNER") {
-            throw new Error("No tienes permiso para crear usuarios")
-          }
-          await apiFetch(
-            "/users",
-            "POST",
-            JSON.stringify(data),
-            {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json"
-            }
-          );
-          navigate("/admin/dashboard/usuarios");
-        } catch (error) {
-           console.error("Error al crear usuario", error);
-           alert("Error al crear usuario. Verifica los datos o permisos.");
-        }
-      };
+      navigate("/admin/dashboard/usuarios");
+    } catch (error) {
+      console.error("Error al crear usuario", error);
+      alert("Error al crear usuario. Verifica los datos o permisos.");
+    }
+  };
 
-    return (
+  return (
     <Card className="m-auto w-full max-w-2xl border-border/60">
       <CardHeader>
         <CardTitle>Registrar Nuevo Usuario</CardTitle>
@@ -70,55 +76,78 @@ export default function NewUserForm() {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombres <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder="Nombre"
-                />
-                {errors.firstName && (
-                  <span className="text-red-500 text-sm">{errors.firstName.message}</span>
-                )}
-              </Field>
-               <Field>
-                <FieldLabel htmlFor="lastName">Apellido</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder="Apellido"
-                />
-                {errors.lastName && (
-                  <span className="text-red-500 text-sm">{errors.lastName.message}</span>
-                )}
-              </Field>
-              <Field>
                 <FieldLabel htmlFor="username">Nombre de usuario</FieldLabel>
-                <Input
-                  {...register("username")}
-                  placeholder="Username"
-                />
+                <Input {...register("username")} placeholder="Username" />
                 {errors.username && (
-                  <span className="text-red-500 text-sm">{errors.username.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.username.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="email">Email <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="firstName">
+                  Nombres <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input {...register("firstName")} placeholder="Nombre" />
+                {errors.firstName && (
+                  <span className="text-red-500 text-sm">
+                    {errors.firstName.message}
+                  </span>
+                )}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="lastName">Apellido</FieldLabel>
+                <Input {...register("lastName")} placeholder="Apellido" />
+                {errors.lastName && (
+                  <span className="text-red-500 text-sm">
+                    {errors.lastName.message}
+                  </span>
+                )}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="email">
+                  Email <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Input
                   type="email"
                   {...register("email")}
                   placeholder="correo@ejemplo.com"
                 />
                 {errors.email && (
-                  <span className="text-red-500 text-sm">{errors.email.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.email.message}
+                  </span>
                 )}
               </Field>
-               <Field>
-                <FieldLabel htmlFor="password">Contraseña <span className="text-destructive">*</span></FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="password">
+                  Contraseña <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Input
                   type="password"
                   {...register("password")}
                   placeholder="*******"
                 />
                 {errors.password && (
-                  <span className="text-red-500 text-sm">{errors.password.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.password.message}
+                  </span>
+                )}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="confirmPassword">
+                  Confirmar contraseña{" "}
+                  <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input
+                  type="password"
+                  {...register("confirmPassword")}
+                  placeholder="*******"
+                />
+                {errors.password && (
+                  <span className="text-red-500 text-sm">
+                    {errors.confirmPassword?.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -128,24 +157,22 @@ export default function NewUserForm() {
                   name="role"
                   defaultValue="STAFF"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Rol" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="STAFF">Staff</SelectItem>
                         <SelectItem value="ADMIN">Admin</SelectItem>
-                         {/* Owner usually shouldn't be valid to create by UI easily but keeping it safe */}
                         <SelectItem value="OWNER">Owner</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {errors.role && (
-                  <span className="text-red-500 text-sm">{errors.role.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.role.message}
+                  </span>
                 )}
               </Field>
             </div>

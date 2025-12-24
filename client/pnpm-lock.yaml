@@ -38,6 +38,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.2.7(@types/node@24.10.3)(jiti@2.6.1)(lightningcss@1.30.2))
+      '@tanstack/react-query':
+        specifier: ^5.90.12
+        version: 5.90.12(react@19.2.3)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -69,6 +72,12 @@ importers:
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.2
+      '@tanstack/eslint-plugin-query':
+        specifier: ^5.91.2
+        version: 5.91.2(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@types/dotenv':
+        specifier: ^8.2.3
+        version: 8.2.3
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.3
@@ -1067,6 +1076,23 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
+  '@tanstack/eslint-plugin-query@5.91.2':
+    resolution: {integrity: sha512-UPeWKl/Acu1IuuHJlsN+eITUHqAaa9/04geHHPedY8siVarSaWprY0SVMKrkpKfk5ehRT7+/MZ5QwWuEtkWrFw==}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+
+  '@tanstack/query-core@5.90.12':
+    resolution: {integrity: sha512-T1/8t5DhV/SisWjDnaiU2drl6ySvsHj1bHBCWNXd+/T+Hh1cf6JodyEYMd5sgwm+b/mETT4EV3H+zCVczCU5hg==}
+
+  '@tanstack/react-query@5.90.12':
+    resolution: {integrity: sha512-graRZspg7EoEaw0a8faiUASCyJrqjKPdqJ9EwuDRUF9mEYJ1YPczI9H+/agJ0mOJkPCJDk0lsz5QTrLZ/jQ2rg==}
+    peerDependencies:
+      react: ^18 || ^19
+
+  '@types/dotenv@8.2.3':
+    resolution: {integrity: sha512-g2FXjlDX/cYuc5CiQvyU/6kkbP1JtmGzh0obW50zD7OKeILVL0NSpPWLXVfqoAGQjom2/SLLx9zHq0KXvD6mbw==}
+    deprecated: This is a stub types definition. dotenv provides its own type definitions, so you do not need this installed.
+
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -1251,6 +1277,10 @@ packages:
 
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
+
+  dotenv@17.2.3:
+    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
+    engines: {node: '>=12'}
 
   electron-to-chromium@1.5.267:
     resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
@@ -2660,6 +2690,25 @@ snapshots:
       tailwindcss: 4.1.18
       vite: 7.2.7(@types/node@24.10.3)(jiti@2.6.1)(lightningcss@1.30.2)
 
+  '@tanstack/eslint-plugin-query@5.91.2(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
+    dependencies:
+      '@typescript-eslint/utils': 8.49.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      eslint: 9.39.2(jiti@2.6.1)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
+  '@tanstack/query-core@5.90.12': {}
+
+  '@tanstack/react-query@5.90.12(react@19.2.3)':
+    dependencies:
+      '@tanstack/query-core': 5.90.12
+      react: 19.2.3
+
+  '@types/dotenv@8.2.3':
+    dependencies:
+      dotenv: 17.2.3
+
   '@types/estree@1.0.8': {}
 
   '@types/json-schema@7.0.15': {}
@@ -2863,6 +2912,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   detect-node-es@1.1.0: {}
+
+  dotenv@17.2.3: {}
 
   electron-to-chromium@1.5.267: {}
 

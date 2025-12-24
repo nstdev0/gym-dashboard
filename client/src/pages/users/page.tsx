@@ -9,7 +9,7 @@ export default function UsersPage() {
         description="Gestiona los usuarios y permisos del sistema"
         buttonProps={[
           {
-            to: "/auth/sign-up",
+            to: "/admin/dashboard/usuarios/nuevo",
             text: "Nuevo usuario",
           },
         ]}

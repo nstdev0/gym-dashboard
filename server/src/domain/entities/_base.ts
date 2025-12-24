@@ -7,6 +7,6 @@ export const auditZ = z.object({
 
 export const baseZ = z
   .object({
-    id: z.number("ID inválido (Debe ser número)"),
+    id: z.cuid2("ID inválido"),
   })
   .extend(auditZ.shape);

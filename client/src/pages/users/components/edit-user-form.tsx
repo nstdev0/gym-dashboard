@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,12 +20,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  updateUserSchema,
-  type UserSchema,
-  type UpdateUserSchema,
-} from "../../../../../server/src/lib/validators/user.schema";
 import { Switch } from "@/components/ui/switch";
+import {
+  userUpdateSchema,
+  type User,
+  type UserUpdate,
+} from "../../../../../server/src/domain/entities/user";
 
 export default function EditUserForm({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -31,8 +37,8 @@ export default function EditUserForm({ id }: { id: string }) {
     control,
     reset,
     formState: { isSubmitting, errors },
-  } = useForm<UpdateUserSchema>({
-    resolver: zodResolver(updateUserSchema) as any,
+  } = useForm<UserUpdate>({
+    resolver: zodResolver(userUpdateSchema),
   });
 
   useEffect(() => {
@@ -45,15 +51,8 @@ export default function EditUserForm({ id }: { id: string }) {
 
     const fetchUserDetails = async () => {
       try {
-        const userDetail: UserSchema = await apiFetch(
-          `/users/${id}`,
-          "GET",
-          null,
-          {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
-        );
-        userDetail.password = ""
+        const userDetail: User = await apiFetch(`/users/${id}`);
+        userDetail.password = "";
         reset(userDetail);
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -64,20 +63,15 @@ export default function EditUserForm({ id }: { id: string }) {
     fetchUserDetails();
   }, [id, reset, navigate]);
 
-  const onSubmit: SubmitHandler<UpdateUserSchema> = async (data) => {
+  const onSubmit: SubmitHandler<UserUpdate> = async (data) => {
     try {
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para editar usuarios");
       }
-      
-      const updatedUserData = {
-        ...data,
-      };
-
-      await apiFetch(`/users/${id}`, "PUT", JSON.stringify(updatedUserData), {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json"
+      await apiFetch(`/users/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
       });
       navigate("/admin/dashboard/usuarios");
     } catch (error) {
@@ -88,7 +82,7 @@ export default function EditUserForm({ id }: { id: string }) {
 
   const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar este usuario?")
+      const confirm = window.confirm("Estas seguro de eliminar este usuario?");
       if (!confirm) {
         return;
       }
@@ -100,14 +94,14 @@ export default function EditUserForm({ id }: { id: string }) {
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para eliminar usuarios");
       }
-      await apiFetch(`/users/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/users/${id}`, {
+        method: "DELETE",
       });
       navigate("/admin/dashboard/usuarios");
     } catch (error) {
       console.error("Error eliminando usuario:", error);
     }
-  }
+  };
 
   if (isLoading) {
     return <div className="p-4 text-center">Cargando datos del usuario...</div>;
@@ -118,7 +112,8 @@ export default function EditUserForm({ id }: { id: string }) {
       <CardHeader>
         <CardTitle>Editar Usuario</CardTitle>
         <CardDescription>
-          Actualiza la información del usuario. Dejar contraseña en blanco para mantener la actual.
+          Actualiza la información del usuario. Dejar contraseña en blanco para
+          mantener la actual.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,44 +121,47 @@ export default function EditUserForm({ id }: { id: string }) {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="firstName">Nombres <span className="text-destructive">*</span></FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder="Nombres"
-                />
+                <FieldLabel htmlFor="firstName">
+                  Nombres <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input {...register("firstName")} placeholder="Nombres" />
                 {errors.firstName && (
-                  <span className="text-red-500 text-sm">{errors.firstName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.firstName.message}
+                  </span>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="lastName">Apellidos</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder="Apellidos"
-                />
+                <Input {...register("lastName")} placeholder="Apellidos" />
                 {errors.lastName && (
-                  <span className="text-red-500 text-sm">{errors.lastName.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.lastName.message}
+                  </span>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="username">Usuario</FieldLabel>
-                <Input
-                  {...register("username")}
-                  placeholder="Usuario"
-                />
+                <Input {...register("username")} placeholder="Usuario" />
                 {errors.username && (
-                  <span className="text-red-500 text-sm">{errors.username.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.username.message}
+                  </span>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="email">Email <span className="text-destructive">*</span></FieldLabel>
+                <FieldLabel htmlFor="email">
+                  Email <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Input
                   type="email"
                   {...register("email")}
                   placeholder="Email"
                 />
                 {errors.email && (
-                  <span className="text-red-500 text-sm">{errors.email.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.email.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -174,7 +172,9 @@ export default function EditUserForm({ id }: { id: string }) {
                   placeholder="Nueva contraseña (opcional)"
                 />
                 {errors.password && (
-                  <span className="text-red-500 text-sm">{errors.password.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.password.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -183,10 +183,7 @@ export default function EditUserForm({ id }: { id: string }) {
                   control={control}
                   name="role"
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Rol" />
                       </SelectTrigger>
@@ -199,7 +196,9 @@ export default function EditUserForm({ id }: { id: string }) {
                   )}
                 />
                 {errors.role && (
-                  <span className="text-red-500 text-sm">{errors.role.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.role.message}
+                  </span>
                 )}
               </Field>
               <Field>
@@ -212,9 +211,17 @@ export default function EditUserForm({ id }: { id: string }) {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className={field.value ? "data-[state=checked]:bg-green-600" : "data-[state=unchecked]:bg-slate-300"}
+                        className={
+                          field.value
+                            ? "data-[state=checked]:bg-green-600"
+                            : "data-[state=unchecked]:bg-slate-300"
+                        }
                       />
-                      <span className={`text-sm font-medium ${field.value ? "text-green-600" : "text-slate-500"}`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          field.value ? "text-green-600" : "text-slate-500"
+                        }`}
+                      >
                         {field.value ? "ACTIVO" : "INACTIVO"}
                       </span>
                     </div>
@@ -224,7 +231,12 @@ export default function EditUserForm({ id }: { id: string }) {
             </div>
           </FieldSet>
           <div className="flex justify-end pt-4 gap-2">
-            <Button variant="destructive" type="button" disabled={isSubmitting} onClick={() => handleDelete(id)}>
+            <Button
+              variant="destructive"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleDelete(id)}
+            >
               Eliminar usuario
             </Button>
             <Button type="submit" disabled={isSubmitting}>

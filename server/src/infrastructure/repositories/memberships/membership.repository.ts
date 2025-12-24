@@ -2,9 +2,9 @@ import { Membership } from "../../../domain/entities/membership";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
 
-export class MembershipRepository extends BaseRepository<Membership, string> {
+export class MembershipRepository extends BaseRepository<Membership> {
   constructor() {
-    super(prisma.membership)
+    super(prisma.membership);
   }
 
   async findAll(): Promise<Membership[]> {
@@ -19,7 +19,7 @@ export class MembershipRepository extends BaseRepository<Membership, string> {
   async findActiveByMemberId(memberId: string) {
     return prisma.membership.findMany({
       where: {
-        memberId,
+        memberId: memberId,
         status: "ACTIVE",
         endDate: { gte: new Date() }, // Que no haya vencido hoy
       },

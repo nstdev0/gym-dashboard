@@ -28,6 +28,7 @@ export const planInsertSchema = planSchema.pick({
   description: true,
   price: true,
   durationInDays: true,
+  isActive: true,
 });
 
 export type PlanInsert = z.infer<typeof planInsertSchema>;

@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import {
   Select,
@@ -13,70 +19,69 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import type { Plan } from "../../../../../server/src/domain/entities/plan";
+import type { Member } from "../../../../../server/src/domain/entities/member";
 import {
-  createMembershipSchema,
-  type CreateMembershipSchema,
-} from "../../../../../server/src/lib/validators/membership.schema";
-import type { MemberSchema } from "../../../../../server/src/lib/validators/member.schema";
-import type { PlanSchema } from "../../../../../server/src/lib/validators/plan.schema";
+  membershipInsertSchema,
+  type MembershipInsert,
+} from "../../../../../server/src/domain/entities/membership";
 
 export default function NewMembershipForm() {
-    const navigate = useNavigate()
-    const [members, setMembers] = useState<MemberSchema[]>([]);
-    const [plans, setPlans] = useState<PlanSchema[]>([]);
+  const navigate = useNavigate();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                const [membersData, plansData] = await Promise.all([
-                    apiFetch("/members", "GET", null, { Authorization: `Bearer ${token}` }),
-                    apiFetch("/plans", "GET", null, { Authorization: `Bearer ${token}` })
-                ]);
-                setMembers(membersData as MemberSchema[]);
-                setPlans(plansData as PlanSchema[]);
-            } catch (error) {
-                console.error("Error fetching data", error);
-            }
-        };
-        fetchData();
-    }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const membersData: Member[] = await apiFetch("/members", {
+          method: "GET",
+        });
+        const plansData: Plan[] = await apiFetch("/plans", {
+          method: "GET",
+        });
+        setMembers(membersData);
+        setPlans(plansData);
+      } catch (error) {
+        console.error("Error fetching data", error);
+      }
+    };
+    fetchData();
+  }, []);
 
-    const {
-        handleSubmit,
-        control,
-        formState: { isSubmitting, errors },
-      } = useForm<CreateMembershipSchema>({
-        resolver: zodResolver(createMembershipSchema) as any,
-         defaultValues: {
-            status: "ACTIVE"
-        }
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting, errors },
+  } = useForm({
+    resolver: zodResolver(membershipInsertSchema),
+    defaultValues: {
+      memberId: "",
+      planId: "",
+      startDate: new Date(),
+      endDate: new Date(),
+      status: "ACTIVE",
+    },
+  });
+
+  const onSubmit: SubmitHandler<MembershipInsert> = async (data) => {
+    try {
+      const role = localStorage.getItem("role");
+      if (role !== "OWNER") {
+        throw new Error("No tienes permiso para crear membresias");
+      }
+      await apiFetch("/memberships", {
+        method: "POST",
+        body: JSON.stringify(data),
       });
-    
-      const onSubmit: SubmitHandler<CreateMembershipSchema> = async (data) => {
-        try {
-          const role = localStorage.getItem("role")
-          if (role !== "OWNER") {
-            throw new Error("No tienes permiso para crear membresias")
-          }
-          await apiFetch(
-            "/memberships",
-            "POST",
-            JSON.stringify(data),
-            {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json"
-            }
-          );
-          navigate("/admin/dashboard/membresias");
-        } catch (error) {
-           console.error("Error al crear membresia", error);
-           alert("Error al crear membresia");
-        }
-      };
+      navigate("/admin/dashboard/membresias");
+    } catch (error) {
+      console.error("Error al crear membresia", error);
+      alert("Error al crear membresia");
+    }
+  };
 
-    return (
+  return (
     <Card className="m-auto w-full max-w-2xl border-border/60">
       <CardHeader>
         <CardTitle>Registrar Nueva Membresía</CardTitle>
@@ -89,8 +94,10 @@ export default function NewMembershipForm() {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="memberId">Miembro <span className="text-destructive">*</span></FieldLabel>
-                 <Controller
+                <FieldLabel htmlFor="memberId">
+                  Miembro <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Controller
                   control={control}
                   name="memberId"
                   render={({ field }) => (
@@ -100,8 +107,12 @@ export default function NewMembershipForm() {
                       </SelectTrigger>
                       <SelectContent>
                         {members.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.firstName} {member.lastName} ({member.docNumber})
+                          <SelectItem
+                            key={member.id}
+                            value={member.id.toString()}
+                          >
+                            {member.firstName} {member.lastName} (
+                            {member.docNumber})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -109,32 +120,15 @@ export default function NewMembershipForm() {
                   )}
                 />
                 {errors.memberId && (
-                  <span className="text-red-500 text-sm">{errors.memberId.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.memberId.message}
+                  </span>
                 )}
               </Field>
-               <Field>
-                <FieldLabel htmlFor="status">Estado <span className="text-destructive">*</span></FieldLabel>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">Activo</SelectItem>
-                        <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.status && (
-                  <span className="text-red-500 text-sm">{errors.status.message}</span>
-                )}
-              </Field>
-               <Field>
-                <FieldLabel htmlFor="planId">Plan <span className="text-destructive">*</span></FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="planId">
+                  Plan <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="planId"
@@ -145,7 +139,7 @@ export default function NewMembershipForm() {
                       </SelectTrigger>
                       <SelectContent>
                         {plans.map((plan) => (
-                          <SelectItem key={plan.id} value={plan.id}>
+                          <SelectItem key={plan.id} value={plan.id.toString()}>
                             {plan.name} - S/{plan.price}
                           </SelectItem>
                         ))}
@@ -154,7 +148,9 @@ export default function NewMembershipForm() {
                   )}
                 />
                 {errors.planId && (
-                  <span className="text-red-500 text-sm">{errors.planId.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.planId.message}
+                  </span>
                 )}
               </Field>
             </div>

@@ -1,9 +1,6 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,55 +9,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import type { MemberSchema } from "../../../../../server/src/lib/lib/validators/member.schema";
+import { Link } from "react-router-dom";
 import { CircleCheck, CircleX } from "lucide-react";
+import { type Member as BaseMember } from "../../../../../server/src/domain/entities/member";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-// Custom type locally extended to include relations
-interface ExtendedMember extends MemberSchema {
-    memberships?: {
-        plan: {
-            name: string;
-        }
-    }[]
-}
+type Member = BaseMember & {
+  memberships?: (NonNullable<BaseMember["memberships"]>[number] & {
+    plan?: {
+      name: string;
+    };
+  })[];
+};
 
 export default function MembersListingPage() {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<ExtendedMember[]>([]);
-  const [auth, setAuth] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const request = {
+    filters: {},
+    page: 1,
+    pageSize: 10,
+  };
 
-  const navigate = useNavigate();
+  const { data, isLoading, isError, error } = useQuery<Member[]>({
+    queryKey: ["members", request],
+    queryFn: async () => {
+       const res = await apiFetch("/members");
+       return res as Member[];
+    },
+    placeholderData: keepPreviousData,
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No se encontro token");
-        }
-        const data: ExtendedMember[] = await apiFetch("/members", "GET", null, {
-          Authorization: `Bearer ${token}`,
-        });
-        setData(data);
-        setAuth(true);
-      } catch (error) {
-        console.error("Error cargando miembros:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id: string | number) => {
-    try {
-      const confirm = window.confirm("Estas seguro de eliminar este miembro?");
-      if (!confirm) {
-        return;
-      }
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string | number) => {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("No se encontro token");
@@ -69,17 +49,38 @@ export default function MembersListingPage() {
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para eliminar miembros");
       }
-      await apiFetch(`/members/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/members/${id}`, {
+        method: "DELETE",
       });
-      const newData = data.filter((member) => member.id !== id);
-      setData(newData);
-    } catch (error: any) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+    },
+    onError: (error) => {
       console.error("Error eliminando miembro:", error);
-      alert(error.message || "Error al eliminar miembro");
+      let errorMessage = "Error desconocido al eliminar miembro";
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
+      alert(errorMessage);
+    },
+  });
+
+  const handleDelete = async (id: string | number) => {
+    const confirm = window.confirm("Estas seguro de eliminar este miembro?");
+    if (!confirm) {
+      return;
     }
-    navigate("/admin/dashboard/miembros");
+    deleteMutation.mutate(id);
   };
+
+  if (isError) {
+    return (
+      <div className="p-4 text-center text-destructive">
+        Error al cargar miembros: {error instanceof Error ? error.message : "Error desconocido"}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -88,11 +89,8 @@ export default function MembersListingPage() {
           Cargando miembros...
         </div>
       )}
-      {!auth && (
-        <div className="p-4 text-center text-destructive">No autorizado!</div>
-      )}
 
-      {!isLoading && auth && (
+      {!isLoading && data && (
         <Card>
           <CardContent className="p-0">
             {data.length === 0 ? (
@@ -130,9 +128,13 @@ export default function MembersListingPage() {
                         <TableCell>{member.phoneNumber || "-"}</TableCell>
                         <TableCell>
                           {activePlan ? (
-                             <span className="font-medium text-primary">{activePlan}</span>
+                            <span className="font-medium text-primary">
+                              {activePlan}
+                            </span>
                           ) : (
-                              <span className="text-muted-foreground text-sm">Sin plan</span>
+                            <span className="text-muted-foreground text-sm">
+                              Sin plan
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -160,8 +162,9 @@ export default function MembersListingPage() {
                               onClick={() => handleDelete(member.id)}
                               variant="destructive"
                               size="sm"
+                              disabled={deleteMutation.isPending}
                             >
-                              Eliminar
+                              {deleteMutation.isPending ? "..." : "Eliminar"}
                             </Button>
                           </div>
                         </TableCell>

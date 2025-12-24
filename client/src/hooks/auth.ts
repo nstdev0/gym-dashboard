@@ -8,14 +8,9 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const validToken: boolean = await apiFetch(
-          "/auth/verify-token",
-          "POST",
-          null,
-          {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
-        );
+        const validToken: boolean = await apiFetch("/auth/verify-token", {
+          method: "POST",
+        });
         if (!validToken) {
           setIsLogged(false);
           throw new Error("Token no valido");

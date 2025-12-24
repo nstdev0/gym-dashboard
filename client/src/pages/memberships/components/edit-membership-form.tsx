@@ -1,6 +1,12 @@
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import {
   Select,
@@ -9,29 +15,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  membershipUpdateSchema,
+  type Membership,
+  type MembershipUpdate,
+} from "../../../../../server/src/domain/entities/membership";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  updateMembershipSchema,
-  type MembershipSchema,
-  type UpdateMembershipSchema,
-} from "../../../../../server/src/lib/validators/membership.schema";
+import type { Plan } from "../../../../../server/src/domain/entities/plan";
+import type { Member } from "../../../../../server/src/domain/entities/member";
 
 export default function EditMembershipForm({ id }: { id: string }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [members, setMembers] = useState<any[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
+  const [membership, setMembership] = useState<Membership | null>(null);
+  const [plans, setPlans] = useState<Plan[] | null>(null);
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [member, setMember] = useState<Member | null>();
 
   const {
     handleSubmit,
     control,
     reset,
     formState: { isSubmitting, errors },
-  } = useForm<UpdateMembershipSchema>({
-    resolver: zodResolver(updateMembershipSchema) as any,
+  } = useForm({
+    resolver: zodResolver(membershipUpdateSchema),
+    defaultValues: {
+      memberId: member?.id,
+      planId: plan?.id,
+      status: membership?.status,
+      startDate: membership?.startDate,
+      endDate: membership?.endDate,
+    },
   });
 
   useEffect(() => {
@@ -44,19 +61,20 @@ export default function EditMembershipForm({ id }: { id: string }) {
 
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const [membersData, plansData, membershipDetail] = await Promise.all([
-             apiFetch("/members", "GET", null, { Authorization: `Bearer ${token}` }),
-             apiFetch("/plans", "GET", null, { Authorization: `Bearer ${token}` }),
-             apiFetch(`/memberships/${id}`, "GET", null, { Authorization: `Bearer ${token}` })
-        ]);
+        const membershipDetail: Membership = await apiFetch(
+          `/memberships/${id}`
+        );
+        const plan: Plan = await apiFetch(`/plans/${membershipDetail.planId}`);
+        const plans: Plan[] = await apiFetch(`/plans`);
+        const memberDetail: Member = await apiFetch(
+          `/members/${membershipDetail.memberId}`
+        );
+        setMembership(membershipDetail);
+        setPlan(plan);
+        setPlans(plans);
+        setMember(memberDetail);
 
-        setMembers(membersData as any[]);
-        setPlans(plansData as any[]);
-        
-        const membership = membershipDetail as MembershipSchema;
-        // Dates need formatting for some inputs if we were using date inputs, but we removed them.
-        reset(membership);
+        reset(membershipDetail);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -66,34 +84,30 @@ export default function EditMembershipForm({ id }: { id: string }) {
     fetchData();
   }, [id, reset, navigate]);
 
-  const onSubmit: SubmitHandler<UpdateMembershipSchema> = async (data) => {
+  const onSubmit: SubmitHandler<MembershipUpdate> = async (data) => {
     try {
       const role = localStorage.getItem("role");
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para editar membresias");
       }
-      
-      // Filter out startDate/endDate if they are in data to avoid overwriting unless intended (but users can't edit them in this form anyway)
-      // Actually backend ignores them usually if not passed, but let's just pass what we have
-      
-      const updatedMembershipData = {
-        ...data,
-      };
-
-      await apiFetch(`/memberships/${id}`, "PUT", JSON.stringify(updatedMembershipData), {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json"
+      await apiFetch(`/memberships/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
       });
       navigate("/admin/dashboard/membresias");
     } catch (error) {
       console.error("Error updating membership", error);
       alert("Error al actualizar membresia");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-   const handleDelete = async (id: string | number) => {
+  const handleDelete = async (id: string | number) => {
     try {
-      const confirm = window.confirm("Estas seguro de eliminar esta membresia?")
+      const confirm = window.confirm(
+        "Estas seguro de eliminar esta membresia?"
+      );
       if (!confirm) {
         return;
       }
@@ -105,18 +119,19 @@ export default function EditMembershipForm({ id }: { id: string }) {
       if (role !== "OWNER") {
         throw new Error("No tienes permiso para eliminar membresias");
       }
-      await apiFetch(`/memberships/${id}`, "DELETE", null, {
-        Authorization: `Bearer ${token}`,
+      await apiFetch(`/memberships/${id}`, {
+        method: "DELETE",
       });
       navigate("/admin/dashboard/membresias");
     } catch (error) {
       console.error("Error eliminando membresia:", error);
     }
-  }
-
+  };
 
   if (isLoading) {
-    return <div className="p-4 text-center">Cargando datos de la membresia...</div>;
+    return (
+      <div className="p-4 text-center">Cargando datos de la membresia...</div>
+    );
   }
 
   return (
@@ -132,8 +147,10 @@ export default function EditMembershipForm({ id }: { id: string }) {
           <FieldSet>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel htmlFor="memberId">Miembro <span className="text-destructive">*</span></FieldLabel>
-                 <Controller
+                <FieldLabel htmlFor="memberId">
+                  Miembro <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Controller
                   control={control}
                   name="memberId"
                   render={({ field }) => (
@@ -142,21 +159,27 @@ export default function EditMembershipForm({ id }: { id: string }) {
                         <SelectValue placeholder="Seleccionar miembro" />
                       </SelectTrigger>
                       <SelectContent>
-                        {members.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.firstName} {member.lastName} ({member.docNumber})
-                          </SelectItem>
-                        ))}
+                        <SelectItem
+                          key={member?.id || ""}
+                          value={member?.id || ""}
+                        >
+                          {member?.firstName} {member?.lastName} (
+                          {member?.docNumber})
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {errors.memberId && (
-                  <span className="text-red-500 text-sm">{errors.memberId.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.memberId.message}
+                  </span>
                 )}
               </Field>
-               <Field>
-                <FieldLabel htmlFor="planId">Plan <span className="text-destructive">*</span></FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="planId">
+                  Plan <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="planId"
@@ -166,7 +189,7 @@ export default function EditMembershipForm({ id }: { id: string }) {
                         <SelectValue placeholder="Seleccionar plan" />
                       </SelectTrigger>
                       <SelectContent>
-                        {plans.map((plan) => (
+                        {plans?.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id}>
                             {plan.name} - S/{plan.price}
                           </SelectItem>
@@ -176,11 +199,15 @@ export default function EditMembershipForm({ id }: { id: string }) {
                   )}
                 />
                 {errors.planId && (
-                  <span className="text-red-500 text-sm">{errors.planId.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.planId.message}
+                  </span>
                 )}
               </Field>
-               <Field>
-                <FieldLabel htmlFor="status">Estado <span className="text-destructive">*</span></FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="status">
+                  Estado <span className="text-destructive">*</span>
+                </FieldLabel>
                 <Controller
                   control={control}
                   name="status"
@@ -199,13 +226,20 @@ export default function EditMembershipForm({ id }: { id: string }) {
                   )}
                 />
                 {errors.status && (
-                  <span className="text-red-500 text-sm">{errors.status.message}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.status.message}
+                  </span>
                 )}
               </Field>
             </div>
           </FieldSet>
           <div className="flex justify-end pt-4 gap-2">
-            <Button variant="destructive" type="button" disabled={isSubmitting} onClick={() => handleDelete(id)}>
+            <Button
+              variant="destructive"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleDelete(id)}
+            >
               Eliminar membresia
             </Button>
             <Button type="submit" disabled={isSubmitting}>

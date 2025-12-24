@@ -37,10 +37,11 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRouter);
 
 // Protected routes
-app.use("/api/members", verifyTokenMiddleware, membersRouter);
-app.use("/api/users", verifyTokenMiddleware, usersRouter);
-app.use("/api/plans", verifyTokenMiddleware, plansRouter);
-app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
+app.use("/api/members", membersRouter);
+// app.use("/api/members", verifyTokenMiddleware, membersRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/plans", plansRouter);
+app.use("/api/memberships", membershipRouter);
 
 // 404 Not found route
 app.use((req, res) => {

@@ -2,7 +2,7 @@ import { Plan } from "../../../domain/entities/plan";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
 
-export class PlanRepository extends BaseRepository<Plan, string> {
+export class PlanRepository extends BaseRepository<Plan> {
   constructor() {
     super(prisma.plan);
   }

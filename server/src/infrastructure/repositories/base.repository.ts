@@ -1,4 +1,7 @@
-import { IBaseRepository } from "../../application/repositories/base-repository.interface";
+import {
+  IBaseRepository,
+  IPageableRequest,
+} from "../../application/repositories/base-repository.interface";
 
 // Interface representing the common methods of a Prisma Delegate
 export interface Delegate<T> {
@@ -12,20 +15,23 @@ export interface Delegate<T> {
 import { ConnectionError } from "../../domain/errors/connection-error";
 import { AppError } from "../../domain/errors/app-error";
 
-export abstract class BaseRepository<TEntity, Id>
-  implements IBaseRepository<TEntity, Id>
+export abstract class BaseRepository<TEntity, TFilters>
+  implements IBaseRepository<TEntity, TFilters>
 {
   constructor(protected readonly model: Delegate<TEntity>) {}
 
-  async findAll(): Promise<TEntity[]> {
+  async findAll(request: IPageableRequest<TFilters>): Promise<TEntity[]> {
     try {
-      return await this.model.findMany();
+      return await this.model.findMany({
+        skip: (request.page - 1) * request.pageSize,
+        take: request.pageSize,
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  async findById(id: Id): Promise<TEntity | null> {
+  async findById(id: string): Promise<TEntity | null> {
     try {
       return await this.model.findUnique({
         where: { id: id },
@@ -55,10 +61,10 @@ export abstract class BaseRepository<TEntity, Id>
     }
   }
 
-  async update(id: Id, data: any): Promise<TEntity | null> {
+  async update(id: string, data: any): Promise<TEntity | null> {
     try {
       return await this.model.update({
-        where: { id },
+        where: { id: id },
         data,
       });
     } catch (error) {
@@ -66,7 +72,7 @@ export abstract class BaseRepository<TEntity, Id>
     }
   }
 
-  async delete(id: Id): Promise<TEntity | null> {
+  async delete(id: string): Promise<TEntity | null> {
     try {
       return await this.model.delete({
         where: { id: id },

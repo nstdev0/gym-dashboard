@@ -5,7 +5,9 @@ export class MembersController {
   constructor(private membersService: MembersService) {}
 
   findAll = async (req: Request, res: Response) => {
-    const response = await this.membersService.findAll();
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const response = await this.membersService.findAll({ page, pageSize, filters: {} });
     res.json(response);
   };
 
