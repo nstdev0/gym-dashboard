@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/apiFetch";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,205 +7,257 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ErrorMessage } from "@/components/ui/FormError";
+import { Textarea } from "@/components/ui/textarea"; // Assuming Textarea exists
+import { Skeleton } from "@/components/ui/skeleton";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { Controller, type SubmitHandler, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-// import { planUpdateSchema, type Plan, type PlanUpdate } from "@/entities/plan";
+import { Controller, useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
+import { useUpdatePlan } from "@/features/plans/mutations";
+import { getPlan } from "@/features/plans/requests";
 import {
   planUpdateSchema,
-  type Plan,
-  type PlanUpdate,
+  type PlanUpdateInput,
 } from "../../../../../server/src/domain/entities/plan";
-import { Switch } from "@/components/ui/switch";
 
-export default function EditPlanForm({ id }: { id: string }) {
+import {
+  ClipboardList,
+  Save,
+  Undo2,
+  DollarSign,
+  Clock,
+  FileText
+} from "lucide-react";
+
+export default function EditPlanForm() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams<{ id: string }>();
+
+  // Fetch plan data
+  const { data: response, isLoading, isError } = useQuery({
+    queryKey: ["plan", id],
+    queryFn: () => getPlan(id!),
+    enabled: !!id,
+  });
+  
+  const plan = response?.data;
 
   const {
     register,
     handleSubmit,
-    reset,
     control,
-    formState: { isSubmitting, errors },
-  } = useForm<PlanUpdate>({
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(planUpdateSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: 0,
+      durationInDays: 30,
+      isActive: true,
+    },
   });
 
+  // Populate form when data is loaded
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "OWNER") {
-      alert("No tienes permiso para editar planes");
-      navigate("/admin/dashboard/planes");
-      return;
-    }
-
-    const fetchPlanDetails = async () => {
-      try {
-        const planDetail: Plan = await apiFetch(`/plans/${id}`);
-        reset(planDetail);
-      } catch (error) {
-        console.error("Error fetching plan:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPlanDetails();
-  }, [id, reset, navigate]);
-
-  const onSubmit: SubmitHandler<PlanUpdate> = async (data) => {
-    try {
-      const role = localStorage.getItem("role");
-      if (role !== "OWNER") {
-        throw new Error("No tienes permiso para editar planes");
-      }
-
-      const updatedPlanData = {
-        ...data,
-      };
-
-      await apiFetch(`/plans/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(updatedPlanData),
+    if (plan) {
+      reset({
+        name: plan.name,
+        description: plan.description || "",
+        price: Number(plan.price),
+        durationInDays: plan.durationInDays,
+        isActive: plan.isActive,
       });
-      navigate("/admin/dashboard/planes");
-    } catch (error) {
-      console.error("Error updating plan", error);
-      alert("Error al actualizar plan");
     }
+  }, [plan, reset]);
+
+  const { mutate, isPending } = useUpdatePlan();
+
+  const onSubmit = (data: PlanUpdateInput) => {
+    if (!id) return;
+    mutate(
+      { id, data },
+      {
+        onSuccess: () => {
+          navigate("/admin/dashboard/planes");
+        },
+      }
+    );
   };
 
-  const handleDelete = async (id: string | number) => {
-    try {
-      const confirm = window.confirm("Estas seguro de eliminar este plan?");
-      if (!confirm) {
-        return;
-      }
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No se encontro token");
-      }
-      const role = localStorage.getItem("role");
-      if (role !== "OWNER") {
-        throw new Error("No tienes permiso para eliminar planes");
-      }
-      await apiFetch(`/plans/${id}`, {
-        method: "DELETE",
-      });
-      navigate("/admin/dashboard/planes");
-    } catch (error) {
-      console.error("Error eliminando plan:", error);
-    }
-  };
-
-  if (isLoading) {
-    return <div className="p-4 text-center">Cargando datos del plan...</div>;
-  }
+  if (isLoading) return <EditPlanSkeleton />;
+  if (isError) return <div className="text-destructive">Error al cargar el plan</div>;
 
   return (
-    <Card className="m-auto w-full max-w-2xl border-border/60">
-      <CardHeader>
-        <CardTitle>Editar Plan</CardTitle>
-        <CardDescription>Actualiza la información del plan.</CardDescription>
+    <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
+      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-full text-primary">
+            <ClipboardList className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">Editar Plan</CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              Modifica los detalles del plan de suscripción.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+
+      <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FieldSet>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <FieldLabel htmlFor="name">Nombre</FieldLabel>
-                <Input {...register("name")} placeholder="Nombre del plan" />
-                {errors.name && (
-                  <span className="text-red-500 text-sm">
-                    {errors.name.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="price">Precio (S/)</FieldLabel>
+          
+          {/* Nombre y Precio */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-xs">
+                Nombre del Plan <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <FileText className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
+                  className="h-9 pl-9 text-sm"
+                  {...register("name")}
+                  placeholder="Ej: Plan Mensual"
+                />
+              </div>
+              <ErrorMessage message={errors.name?.message} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-xs">
+                Precio (PEN) <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-9 text-sm"
                   type="number"
                   step="0.01"
                   {...register("price", { valueAsNumber: true })}
                   placeholder="0.00"
                 />
-                {errors.price && (
-                  <span className="text-red-500 text-sm">
-                    {errors.price.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="durationInDays">
-                  Duración (Días)
-                </FieldLabel>
+              </div>
+              <ErrorMessage message={errors.price?.message} />
+            </div>
+          </div>
+
+          {/* Duración y Estado */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-2">
+              <Label htmlFor="durationInDays" className="text-xs">
+                Duración (Días) <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
+                  className="h-9 pl-9 text-sm"
                   type="number"
                   {...register("durationInDays", { valueAsNumber: true })}
-                  placeholder="e.j. 30"
+                  placeholder="30"
                 />
-                {errors.durationInDays && (
-                  <span className="text-red-500 text-sm">
-                    {errors.durationInDays.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="description">Descripción</FieldLabel>
-                <Input
-                  {...register("description")}
-                  placeholder="Descripción opcional"
-                />
-                {errors.description && (
-                  <span className="text-red-500 text-sm">
-                    {errors.description.message}
-                  </span>
-                )}
-              </Field>
-              <Controller
-                control={control}
-                name="isActive"
-                render={({ field }) => (
-                  <div className="flex items-center gap-3">
+              </div>
+              <ErrorMessage message={errors.durationInDays?.message} />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">Plan Activo</Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Visible para nuevas suscripciones.
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className={
-                        field.value
-                          ? "data-[state=checked]:bg-green-600"
-                          : "data-[state=unchecked]:bg-slate-300"
-                      }
+                      className="scale-90"
                     />
-                    <span
-                      className={`text-sm font-medium ${
-                        field.value ? "text-green-600" : "text-slate-500"
-                      }`}
-                    >
-                      {field.value ? "ACTIVO" : "INACTIVO"}
-                    </span>
-                  </div>
-                )}
-              />
+                  )}
+                />
             </div>
-          </FieldSet>
-          <div className="flex justify-end pt-4 gap-2">
+          </div>
+
+          {/* Descripción */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-xs">
+              Descripción <span className="text-muted-foreground">(Opcional)</span>
+            </Label>
+            <Textarea
+              className="resize-none text-sm"
+              rows={3}
+              {...register("description")}
+              placeholder="Detalles adicionales del plan..."
+            />
+            <ErrorMessage message={errors.description?.message} />
+          </div>
+
+          {/* Botones */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
-              variant="destructive"
               type="button"
-              disabled={isSubmitting}
-              onClick={() => handleDelete(id)}
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(-1)}
+              disabled={isPending}
             >
-              Eliminar plan
+              <Undo2 className="mr-2 h-4 w-4" />
+              Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="min-w-32"
+            >
+              {isPending ? (
+                "Guardando..."
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Actualizar Plan
+                </>
+              )}
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
   );
+}
+
+function EditPlanSkeleton() {
+  return (
+     <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
+      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64 mt-2" />
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+           <Skeleton className="h-12 w-full" />
+           <Skeleton className="h-12 w-full" />
+        </div>
+        <div className="grid grid-cols-2 gap-6">
+           <Skeleton className="h-12 w-full" />
+           <Skeleton className="h-12 w-full" />
+        </div>
+        <Skeleton className="h-24 w-full" />
+        <div className="flex justify-end gap-3">
+             <Skeleton className="h-10 w-24" />
+             <Skeleton className="h-10 w-32" />
+        </div>
+      </CardContent>
+    </Card>
+  )
 }

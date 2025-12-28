@@ -1,15 +1,41 @@
-import { MemberRepository } from "../../../infrastructure/repositories/members/member.repository";
-import { Member, MemberInsert, MemberUpdate } from "../../../domain/entities/member";
+import {
+  Member,
+  MemberInsert,
+  MemberUpdate,
+} from "../../../domain/entities/member";
+import { IPageableResult } from "../../common/pagination";
+import {
+  IMembersRepository,
+  MembersFilters,
+} from "../../repositories/members-repository.interface";
 
 export class MembersService {
-  constructor(private membersRepository: MemberRepository) {}
+  constructor(private membersRepository: IMembersRepository) {}
 
   findAll = async (request: {
     page: number;
     pageSize: number;
-    filters: any;
-  }): Promise<Member[]> => {
-    return await this.membersRepository.findAll(request);
+    filters?: MembersFilters;
+  }): Promise<IPageableResult<Member>> => {
+    const includes = {
+      memberships: {
+        where: {
+          status: "ACTIVE",
+        },
+        include: {
+          plan: true,
+        },
+      },
+    };
+    try {
+      const response = await this.membersRepository.findAll(request, includes);
+      if (!response) {
+        throw new Error("No members found");
+      }
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
   create = async (data: MemberInsert): Promise<Member> => {
@@ -49,13 +75,20 @@ export class MembersService {
   };
 
   findById = async (id: string): Promise<Member | null> => {
-    return await this.membersRepository.findById(id);
+    const includes = {
+      memberships: {
+        where: {
+          status: "ACTIVE",
+        },
+        include: {
+          plan: true,
+        },
+      },
+    };
+    return await this.membersRepository.findById(id, includes);
   };
 
-  update = async (
-    id: string,
-    data: MemberUpdate
-  ): Promise<Member | null> => {
+  update = async (id: string, data: MemberUpdate): Promise<Member | null> => {
     return await this.membersRepository.update(id, data);
   };
 

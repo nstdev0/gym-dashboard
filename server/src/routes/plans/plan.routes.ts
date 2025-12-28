@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { PlanService } from "../../application/use-cases/plans/plan.use-cases";
+import { PlansController } from "../../interface-adapters/controllers/plans/plan.controller";
+import { PlansService } from "../../application/use-cases/plans/plan.use-cases";
 import { PlanRepository } from "../../infrastructure/repositories/plans/plan.repository";
-import { PlanController } from "../../interface-adapters/controllers/plans/plan.controller";
 
-const planRepository = new PlanRepository();
-const planService = new PlanService(planRepository);
-const plansController = new PlanController(planService);
+const plansRepository = new PlanRepository();
+const plansService = new PlansService(plansRepository);
+const plansController = new PlansController(plansService);
 
 const router = Router();
 

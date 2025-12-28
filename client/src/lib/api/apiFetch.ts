@@ -1,4 +1,4 @@
-import { config } from "../config/config";
+import { config } from "../../config/config";
 
 const BASE_API_URL = config.BASE_API_URL || "http://localhost:4000/api";
 

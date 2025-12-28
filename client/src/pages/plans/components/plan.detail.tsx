@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/apiFetch";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -7,97 +7,183 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Plan } from "@/entities/plan";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { getPlan } from "@/features/plans/requests";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Calendar,
+  DollarSign,
+  Clock,
+  ClipboardList,
+  AlertCircle,
+  CheckCircle2,
+  XCircle
+} from "lucide-react";
+
+const formatDate = (date?: Date | string | null) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("es-PE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 export default function PlanDetail({ id }: { id: string }) {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryFn: () => getPlan(id),
+    queryKey: ["plan", id],
+  });
+  
+  const plan = response?.data;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No token found");
+  if (isLoading) return <PlanDetailSkeleton />;
 
-        const response: Plan = await apiFetch(`/plans/${id}`);
-        if (!response) {
-          throw new Error("No se encontro el plan");
-        }
-        setPlan(response);
-      } catch (error) {
-        console.error("Error cargando detalles del plan:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [id]);
+  if (isError || !plan) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10">
+        <CardContent className="flex flex-col items-center justify-center p-6 text-destructive">
+          <AlertCircle className="h-10 w-10 mb-2" />
+          <p>No se pudo cargar la información del plan.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="w-full">
-      {isLoading && (
-        <div className="flex justify-center p-8">
-          <Loader2 className="animate-spin h-8 w-8 text-primary" />
-        </div>
-      )}
-      {!isLoading && plan && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="border-b border-border/40 bg-muted/20">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription className="mt-1 text-lg">
-                    {plan.description || "Sin descripción"}
-                  </CardDescription>
-                </div>
-                <div
-                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    plan.isActive
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {plan.isActive ? "ACTIVO" : "INACTIVO"}
-                </div>
+    <div className="w-full space-y-6">
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b bg-muted/30 pb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-primary/10 rounded-full">
+                <ClipboardList className="h-8 w-8 text-primary" />
               </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Precio
-                  </h4>
-                  <p className="text-2xl font-bold">S/ {plan.price}</p>
-                </div>
+              <div>
+                <CardTitle className="text-2xl font-bold">
+                  {plan.name}
+                </CardTitle>
+                <CardDescription className="flex items-center gap-2 mt-1.5 font-mono text-sm tracking-wide">
+                  <span className="font-semibold text-foreground/80">
+                    ID: {plan.id}
+                  </span>
+                </CardDescription>
+              </div>
+            </div>
 
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Duración
-                  </h4>
-                  <p className="text-lg">{plan.durationInDays} días</p>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-muted/10 text-xs text-muted-foreground border-t border-border/40 py-3 flex justify-between">
-              <span>
-                ID: <span className="font-mono">{plan.id}</span>
-              </span>
-              <span>
-                Registro: {new Date(plan.createdAt).toLocaleDateString("es-PE")}
-              </span>
-            </CardFooter>
-          </Card>
-        </div>
-      )}
-      {!isLoading && !plan && (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>No se encontró información del plan.</p>
-        </div>
-      )}
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant={plan.isActive ? "default" : "secondary"}
+                className={
+                  plan.isActive ? "bg-green-600 hover:bg-green-700" : ""
+                }
+              >
+                {plan.isActive ? (
+                   <><CheckCircle2 className="w-3 h-3 mr-1"/> ACTIVO</>
+                ) : (
+                   <><XCircle className="w-3 h-3 mr-1"/> INACTIVO</>
+                )}
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-8 grid gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <InfoItem
+              icon={<DollarSign className="h-4 w-4" />}
+              label="Precio"
+              value={`S/ ${Number(plan.price).toFixed(2)}`}
+            />
+            <InfoItem
+              icon={<Clock className="h-4 w-4" />}
+              label="Duración"
+              value={`${plan.durationInDays} días`}
+            />
+            <InfoItem
+              icon={<Calendar className="h-4 w-4" />}
+              label="Fecha Creación"
+              value={formatDate(plan.createdAt)}
+            />
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">
+              Descripción
+            </h4>
+            <p className="text-sm text-foreground/90 whitespace-pre-wrap">
+              {plan.description || "Sin descripción."}
+            </p>
+          </div>
+        </CardContent>
+
+        <CardFooter className="bg-muted/10 border-t py-4 text-xs text-muted-foreground flex justify-between items-center">
+            <span>Última actualización: {formatDate(plan.updatedAt)}</span>
+        </CardFooter>
+      </Card>
     </div>
+  );
+}
+
+type InfoItemProps = {
+  icon?: React.ReactNode;
+  label: string;
+  value?: string | React.ReactNode;
+  className?: string;
+};
+function InfoItem({ icon, label, value, className = "" }: InfoItemProps) {
+  return (
+    <div className={`space-y-1 ${className}`}>
+      <div className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        <span className="text-xs font-medium uppercase">{label}</span>
+      </div>
+      <p className="text-base font-medium text-foreground">
+        {value || (
+          <span className="text-muted-foreground/50 italic">No registrado</span>
+        )}
+      </p>
+    </div>
+  );
+}
+
+function PlanDetailSkeleton() {
+  return (
+    <Card className="w-full">
+      <CardHeader className="border-b pb-8">
+        <div className="flex justify-between items-start">
+          <div className="flex gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-8 space-y-8">
+        <div className="grid grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-px w-full" />
+        <div className="space-y-2">
+           <Skeleton className="h-4 w-32" />
+           <Skeleton className="h-16 w-full" />
+        </div>
+      </CardContent>
+    </Card>
   );
 }

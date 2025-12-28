@@ -3,13 +3,13 @@ import MembershipsListingPage from "./components/memberships.listing";
 
 export default function MembershipsPage() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="flex flex-col h-full space-y-4">
       <PageHeader
         title="Membresías"
-        description="Gestiona las membresías de los suscriptores"
+        description="Visualiza y gestiona las membresías de los usuarios"
         buttonProps={[
           {
-            to: "/admin/dashboard/membresias/nuevo", // Assuming route existence or future implementation
+            to: "/admin/dashboard/membresias/nuevo",
             text: "Nueva membresía",
           },
         ]}

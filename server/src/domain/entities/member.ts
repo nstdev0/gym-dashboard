@@ -1,85 +1,131 @@
 import z from "zod";
-import { GenderEnum } from "../enums/gender.enum";
-import { DocTypeEnum } from "../enums/doctype.enum";
-import { baseZ } from "./_base";
+import { GenderEnum } from "../../../../server/src/domain/enums/gender.enum";
+import { DocTypeEnum } from "../../../../server/src/domain/enums/doctype.enum";
+import { capitalizeText } from "../../../../server/src/lib/utils/capitalize-text";
 import { membershipSchema } from "./membership";
+import { baseZ } from "./_base";
 
-export const memberSchema = z
-  .object({
-    firstName: z
-      .string()
-      .min(3, "El nombre debe tener al menos 3 caracteres")
-      .max(50, "El nombre no puede tener más de 50 caracteres"),
-    lastName: z
-      .string()
-      .min(3, "El apellido debe tener al menos 3 caracteres")
-      .max(50, "El apellido no puede tener más de 50 caracteres"),
-    gender: GenderEnum.nullable(),
-    birthDate: z.coerce
-      .date({
-        error: "La fecha de nacimiento debe ser una fecha válida",
-      })
-      .max(new Date(), "La fecha de nacimiento no puede ser en el futuro")
-      .optional()
-      .nullable()
-      .refine(
-        (date) => {
-          if (!date) return true;
-          const today = new Date();
-          const minAge = new Date(
-            today.getFullYear() - 18,
-            today.getMonth(),
-            today.getDate()
-          );
-          return date <= minAge;
-        },
-        {
-          message: "El miembro debe tener al menos 18 años",
-        }
-      ),
-    height: z.coerce
-      .number("La altura debe ser un número")
-      .positive("La altura debe ser un número positivo")
-      .optional()
-      .nullable(),
-    weight: z.coerce
-      .number("El peso debe ser un número")
-      .positive("El peso debe ser un número positivo")
-      .optional()
-      .nullable(),
-    docType: DocTypeEnum,
-    docNumber: z
-      .string("El número de documento debe ser un texto")
-      .max(20, "El número de documento no puede tener más de 20 caracteres"),
-    phoneNumber: z
-      .string()
-      .regex(/^9\d{8}$/, "El teléfono debe empezar con 9 y tener 9 dígitos")
-      .optional()
-      .nullable(),
-    email: z.email("Correo electrónico inválido").optional().nullable(),
-    isActive: z.boolean().default(true),
-    memberships: membershipSchema.array().optional(),
-  })
-  .extend(baseZ.shape);
+// ---------------------------------------------------------
+// 1. REGLAS Y LÓGICA DE NEGOCIO (Reutilizables)
+// ---------------------------------------------------------
+const DOC_RULES = {
+  DNI: { regex: /^\d{8}$/, msg: "El DNI debe tener 8 dígitos exactos" },
+  CE: { regex: /^\d{9}$/, msg: "El CE debe tener 9 dígitos" },
+  PASSPORT: { min: 6, max: 20, msg: "Pasaporte entre 6 y 20 caracteres" },
+};
 
-export type Member = z.infer<typeof memberSchema>;
+// Función de validación cross-field
+const validateDocuments = (
+  data: { docType?: string | null; docNumber?: string | null },
+  ctx: z.RefinementCtx
+) => {
+  // Si falta alguno de los dos, no podemos validar la coherencia (útil para updates parciales)
+  if (!data.docType || !data.docNumber) return;
 
-export const memberInsertSchema = memberSchema.pick({
-  firstName: true,
-  lastName: true,
-  gender: true,
-  birthDate: true,
-  height: true,
-  weight: true,
-  docType: true,
-  docNumber: true,
-  phoneNumber: true,
-  email: true,
-  isActive: true,
+  const { docType, docNumber } = data;
+
+  if (docType === "DNI" && !DOC_RULES.DNI.regex.test(docNumber)) {
+    ctx.addIssue({
+      code: "custom",
+      message: DOC_RULES.DNI.msg,
+      path: ["docNumber"],
+    });
+  }
+  if (docType === "CE" && !DOC_RULES.CE.regex.test(docNumber)) {
+    ctx.addIssue({
+      code: "custom",
+      message: DOC_RULES.CE.msg,
+      path: ["docNumber"],
+    });
+  }
+  if (docType === "PASSPORT") {
+    if (
+      docNumber.length < DOC_RULES.PASSPORT.min ||
+      docNumber.length > DOC_RULES.PASSPORT.max
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: DOC_RULES.PASSPORT.msg,
+        path: ["docNumber"],
+      });
+    }
+  }
+};
+
+// ---------------------------------------------------------
+// 2. BASE SHAPE (La estructura pura de tus datos)
+// ---------------------------------------------------------
+// Definimos esto SIN .superRefine para poder reutilizarlo con .pick() y .extend()
+const memberBaseShape = z.object({
+  firstName: z
+    .string("El nombre es requerido")
+    .min(2, "Mínimo 2 caracteres")
+    .transform(capitalizeText),
+
+  lastName: z
+    .string("El apellido es requerido")
+    .min(2, "Mínimo 2 caracteres")
+    .transform(capitalizeText),
+
+  gender: GenderEnum.optional().nullable(), // Prisma: Gender?
+
+  // z.coerce es VITAL para formularios: convierte "2000-01-01" a Date
+  birthDate: z.coerce
+    .date()
+    .max(new Date(), "Fecha inválida (futuro)")
+    .optional()
+    .nullable(),
+
+  // coerce.number maneja el input type="number" que devuelve strings
+  height: z.coerce.number().positive("Debe ser positivo").optional().nullable(),
+
+  weight: z.coerce.number().positive("Debe ser positivo").optional().nullable(),
+
+  docType: DocTypeEnum,
+
+  docNumber: z.string("Documento requerido").min(1, "Requerido"),
+
+  phoneNumber: z
+    .string()
+    .regex(/^9\d{8}$/, "Formato inválido (Ej: 912345678)")
+    .optional()
+    .nullable(),
+
+  email: z.email("Email inválido").optional().nullable(), // Prisma: String? @unique
+
+  isActive: z.boolean().default(true),
 });
 
-export type MemberInsert = z.infer<typeof memberInsertSchema>;
+// ---------------------------------------------------------
+// 3. SCHEMAS CONCRETOS
+// ---------------------------------------------------------
 
-export const memberUpdateSchema = memberInsertSchema.partial();
+/**
+ * SCHEMA DE SALIDA (Database Model)
+ * Úsalo cuando leas datos de la DB para tipar tu frontend
+ */
+export const memberSchema = memberBaseShape.extend(baseZ.shape).extend({
+  memberships: z.array(membershipSchema).optional(),
+});
+export type Member = z.infer<typeof memberSchema>;
 
-export type MemberUpdate = z.infer<typeof memberUpdateSchema>;
+/**
+ * SCHEMA DE CREACIÓN (Insert)
+ * - id, createdAt, updatedAt NO van.
+ * - Aplicamos la validación condicional DocType vs DocNumber
+ */
+export const memberCreateSchema =
+  memberBaseShape.superRefine(validateDocuments); // 🔥 Validación lógica aquí
+
+export type MemberCreateInput = z.infer<typeof memberCreateSchema>;
+
+/**
+ * SCHEMA DE ACTUALIZACIÓN (Update)
+ * - Todo es opcional (Partial).
+ * - id no va en el body (va en la URL).
+ */
+export const memberUpdateSchema = memberBaseShape
+  .partial() // Hace todo opcional automáticamente
+  .superRefine(validateDocuments); // 🔥 Re-valida si envías ambos campos
+
+export type MemberUpdateInput = z.infer<typeof memberUpdateSchema>;

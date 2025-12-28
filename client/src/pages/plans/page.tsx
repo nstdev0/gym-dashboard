@@ -3,13 +3,13 @@ import PlansListingPage from "./components/plans.listing";
 
 export default function PlansPage() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="flex flex-col h-full space-y-4">
       <PageHeader
         title="Planes"
-        description="Gestiona los planes de suscripción disponibles"
+        description="Gestiona los planes de suscripción de tu gimnasio"
         buttonProps={[
           {
-            to: "/admin/dashboard/planes/nuevo", // Assuming route existence or future implementation
+            to: "/admin/dashboard/planes/nuevo",
             text: "Nuevo plan",
           },
         ]}

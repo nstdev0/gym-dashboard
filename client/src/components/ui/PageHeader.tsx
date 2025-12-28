@@ -18,10 +18,9 @@ export default function PageHeader({
   return (
     <div className="mb-6 border-b border-border pb-4 flex justify-between items-end">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-        {description && (
-          <p className="text-muted-foreground mt-1">{description}</p>
-        )}
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {title}
+        </h1>
       </div>
       <div className="flex gap-2">
         {buttonProps.map((prop, index) => (

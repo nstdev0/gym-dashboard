@@ -3,10 +3,10 @@ import NewMembershipForm from "../components/new-membership-form";
 
 export default function NewMembershipPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto pb-6">
       <PageHeader
-        title="Agregar una membresía"
-        description="Ingresa los datos de la nueva membresía"
+        title="Nueva Membresía"
+        description="Registra una nueva suscripción para un miembro"
         buttonProps={[
           {
             to: "/admin/dashboard/membresias",

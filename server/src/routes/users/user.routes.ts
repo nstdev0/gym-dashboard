@@ -1,22 +1,22 @@
 import { Router } from "express";
-import { UserService } from "../../application/use-cases/users/user.use-cases";
+import { UsersController } from "../../interface-adapters/controllers/users/user.controller";
+import { UsersService } from "../../application/use-cases/users/user.use-cases";
 import { UserRepository } from "../../infrastructure/repositories/users/user.repository";
-import { UserController } from "../../interface-adapters/controllers/users/user.controller";
 
 const userRepository = new UserRepository();
-const userService = new UserService(userRepository);
-const userController = new UserController(userService);
+const usersService = new UsersService(userRepository);
+const usersController = new UsersController(usersService);
 
 const router = Router();
 
-router.get("/", userController.findAll);
+router.get("/", usersController.findAll);
 
-router.post("/", userController.create);
+router.post("/", usersController.create);
 
-router.get("/:id", userController.findById);
+router.get("/:id", usersController.findById);
 
-router.put("/:id", userController.update);
+router.put("/:id", usersController.update);
 
-router.delete("/:id", userController.delete);
+router.delete("/:id", usersController.delete);
 
 export default router;

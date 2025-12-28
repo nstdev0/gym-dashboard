@@ -1,54 +1,42 @@
-import { User, UserInsert, UserUpdate } from "../../../domain/entities/user";
+import {
+  IUsersRepository,
+  UsersFilters,
+} from "../../../application/repositories/users-repository.interface";
+import { User } from "../../../domain/entities/user";
 import { prisma } from "../../../lib/prisma";
 import { BaseRepository } from "../base.repository";
-import bcrypt from "bcrypt";
 
-export class UserRepository extends BaseRepository<User, string> {
+export class UserRepository
+  extends BaseRepository<User, UsersFilters>
+  implements IUsersRepository
+{
   constructor() {
     super(prisma.user);
   }
 
-  saltRounds = 10;
+  async buildQueryFilters(
+    filters: UsersFilters
+  ): Promise<Record<string, unknown>> {
+    const whereClause: Record<string, unknown> = {};
 
-  async create(data: UserInsert): Promise<User> {
-    const hashedPassword = await bcrypt.hash(data.password, this.saltRounds);
-    data.password = hashedPassword;
-    return this.model.create({ data });
-  }
-
-  async update(id: string, data: UserUpdate): Promise<User | null> {
-    if (data.password) {
-      const hashedPassword = await bcrypt.hash(data.password, this.saltRounds);
-      data.password = hashedPassword;
+    if (filters.search) {
+      whereClause.OR = [
+        { firstName: { contains: filters.search } },
+        { lastName: { contains: filters.search } },
+        { email: { contains: filters.search } },
+      ];
     }
-    return this.model.update({
-      where: { id },
-      data,
-    });
+
+    if (filters.role) {
+      whereClause.role = filters.role;
+    }
+
+    return whereClause;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.model.findUnique({
+    return await prisma.user.findUnique({
       where: { email },
     });
-  }
-
-  async findByUsername(username: string): Promise<User | null> {
-    return this.model.findUnique({
-      where: { username },
-    });
-  }
-
-  async validate(credentials: {
-    email: string;
-    password: string;
-  }): Promise<User | null> {
-    const user = await this.findByEmail(credentials.email);
-    if (!user) return null;
-
-    const isValid = await bcrypt.compare(credentials.password, user.password);
-    if (!isValid) return null;
-
-    return user;
   }
 }

@@ -3,7 +3,7 @@ import MembersListingPage from "./components/members.listing";
 
 export default function MembersPage() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="flex flex-col h-full space-y-4">
       <PageHeader
         title="Miembros"
         description="Lista de los miembros de tu gimnasio"

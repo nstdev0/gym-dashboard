@@ -9,7 +9,7 @@ export default function MemberDetailPage() {
   if (!id) return <div>Invalid ID</div>;
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto pb-6">
       <PageHeader
         title="Miembro"
         description="Detalles del miembro"

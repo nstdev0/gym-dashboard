@@ -1,6 +1,6 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { useParams } from "react-router-dom";
 import EditUserForm from "../../components/edit-user-form";
+import { useParams } from "react-router-dom";
 
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
@@ -8,10 +8,10 @@ export default function EditUserPage() {
   if (!id) return <div>Invalid ID</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 md:p-10">
+    <div className="max-w-4xl mx-auto pb-6">
       <PageHeader
-        title="Editando Usuario"
-        description="Editar detalles del usuario"
+        title="Editar Usuario"
+        description="Actualiza la información del usuario"
         buttonProps={[
           {
             to: "/admin/dashboard/usuarios",
@@ -19,9 +19,7 @@ export default function EditUserPage() {
           },
         ]}
       />
-      <div className="mt-8">
-        <EditUserForm id={id} />
-      </div>
+      <EditUserForm />
     </div>
   );
 }

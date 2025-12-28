@@ -1,61 +1,52 @@
 import z from "zod";
-import { baseZ } from "./_base";
-import { RoleEnum } from "../enums/role.enum";
+import { RoleEnum } from "../../../../server/src/domain/enums/role.enum"; // Ajusta tu import
+import { capitalizeText } from "../../../../server/src/lib/utils/capitalize-text";
 
-export const userSchema = z
-  .object({
-    role: RoleEnum.default("STAFF"),
-    firstName: z
-      .string()
-      .min(3, "El nombre es obligatorio y debe tener al menos 3 caracteres"),
-    lastName: z.preprocess((value) => {
-      if (typeof value === "string" && value.trim() === "") {
-        return null;
-      }
-      return value;
-    }, z.string().min(3, "El apellido debe tener al menos 3 caracteres").optional().nullable()),
-    username: z.preprocess((value) => {
-      if (typeof value === "string" && value.trim() === "") {
-        return null;
-      }
-      return value;
-    }, z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").regex(/^\S+$/, "El nombre de usuario no debe contener espacios").optional().nullable()),
-    email: z.email("Email inválido"),
-    password: z
-      .string()
-      .min(8, "La contraseña debe tener al menos 8 caracteres"),
-    isActive: z.boolean().default(true),
-  })
-  .extend(baseZ.shape);
+// ---------------------------------------------------------
+// BASE SHAPE (Datos públicos/comunes)
+// ---------------------------------------------------------
+const userBaseShape = z.object({
+  firstName: z
+    .string("Nombre requerido")
+    .min(2, "Mínimo 2 caracteres")
+    .transform(capitalizeText),
 
-export type User = z.infer<typeof userSchema>;
+  lastName: z.string().transform(capitalizeText).optional().nullable(),
 
-export const userInsertSchema = userSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+  username: z
+    .string()
+    .min(4, "Mínimo 4 caracteres")
+    .regex(/^[a-z0-9_]+$/, "Solo minúsculas, números y guión bajo")
+    .optional()
+    .nullable(),
+
+  email: z.string("Email requerido").email("Email inválido"),
+
+  role: RoleEnum.default("STAFF"), // Valor por defecto si no se envía
+
+  isActive: z.boolean().default(true),
 });
 
-export type UserInsert = z.infer<typeof userInsertSchema>;
+// ---------------------------------------------------------
+// SCHEMAS CONCRETOS
+// ---------------------------------------------------------
 
-export const userUpdateSchema = userSchema.partial();
+/** SCHEMA DE SALIDA (Lo que recibes del backend - SIN PASSWORD) */
+export const userSchema = userBaseShape.extend({
+  id: z.string().cuid(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+export type User = z.infer<typeof userSchema>;
 
-export type UserUpdate = z.infer<typeof userUpdateSchema>;
+/** SCHEMA DE CREACIÓN (Password obligatoria) */
+export const userCreateSchema = userBaseShape.extend({
+  password: z.string("Contraseña requerida").min(6, "Mínimo 6 caracteres"),
+});
+export type UserCreateInput = z.infer<typeof userCreateSchema>;
 
-export const userRegisterSchema = userSchema
-  .pick({
-    firstName: true,
-    lastName: true,
-    username: true,
-    email: true,
-    password: true,
-    role: true,
-  })
-  .extend({
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
-  });
-export type UserRegister = z.infer<typeof userRegisterSchema>;
+/** SCHEMA DE ACTUALIZACIÓN (Password opcional) */
+export const userUpdateSchema = userBaseShape.partial().extend({
+  password: z.string().min(6).optional(), // Solo si quiere cambiarla
+});
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>;

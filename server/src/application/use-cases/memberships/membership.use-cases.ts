@@ -1,56 +1,56 @@
 import {
-  MembershipInsert,
-  MembershipUpdate,
+  Membership,
+  MembershipCreateInput,
+  MembershipUpdateInput,
 } from "../../../domain/entities/membership";
-import { MemberRepository } from "../../../infrastructure/repositories/members/member.repository";
-import { MembershipRepository } from "../../../infrastructure/repositories/memberships/membership.repository";
-import { PlanRepository } from "../../../infrastructure/repositories/plans/plan.repository";
+import { IPageableResult } from "../../common/pagination";
+import { IMembershipRepository, MembershipsFilters } from "../../repositories/memberships-repository.interface";
 
-export class MembershipService {
-  constructor(
-    private membershipRepository: MembershipRepository,
-    private memberRepository: MemberRepository,
-    private planRepository: PlanRepository
-  ) {}
+export class MembershipsService {
+  constructor(private membershipsRepository: IMembershipRepository) {}
 
-  findAll = async () => {
-    return await this.membershipRepository.findAll();
+  findAll = async (request: {
+    page: number;
+    pageSize: number;
+    filters?: MembershipsFilters;
+  }): Promise<IPageableResult<Membership>> => {
+    const includes = {
+        member: true,
+        plan: true
+    };
+    try {
+      const response = await this.membershipsRepository.findAll(request, includes);
+      if (!response) {
+        throw new Error("No memberships found");
+      }
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  create = async (data: MembershipInsert) => {
-    const existingMembership =
-      await this.membershipRepository.findActiveByMemberId(data.memberId);
-    if (existingMembership.length > 0) {
-      throw new Error("El miembro ya tiene una membresía activa.");
-    }
-    const isMemberActive = await this.memberRepository.isActive(data.memberId);
-    if (!isMemberActive) {
-      throw new Error("El miembro no está activo.");
-    }
-    const planIsActive = await this.planRepository.isActive(data.planId);
-    if (!planIsActive) {
-      throw new Error("El plan asociado no está activo.");
-    }
-    const plan = await this.planRepository.findById(data.planId);
-    if (!plan) {
-      throw new Error("El plan asociado no existe.");
-    }
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + plan.durationInDays);
-    const membershipData = { ...data, startDate, endDate };
-    return await this.membershipRepository.create(membershipData);
+  create = async (data: MembershipCreateInput): Promise<Membership> => {
+    // Logic for active memberships check could go here
+    // For now simple create
+    return await this.membershipsRepository.create(data);
   };
 
-  findById = async (id: string) => {
-    return await this.membershipRepository.findById(id);
+  findById = async (id: string): Promise<Membership | null> => {
+    const includes = {
+        member: true,
+        plan: true
+    };
+    return await this.membershipsRepository.findById(id, includes);
   };
 
-  update = async (id: string, data: MembershipUpdate) => {
-    return await this.membershipRepository.update(id, data);
+  update = async (
+    id: string,
+    data: MembershipUpdateInput
+  ): Promise<Membership | null> => {
+    return await this.membershipsRepository.update(id, data);
   };
 
-  delete = async (id: string) => {
-    return await this.membershipRepository.delete(id);
+  delete = async (id: string): Promise<Membership | null> => {
+    return await this.membershipsRepository.delete(id);
   };
 }

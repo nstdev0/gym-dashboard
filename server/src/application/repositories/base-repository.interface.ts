@@ -1,9 +1,29 @@
+import { Prisma } from "../../generated/prisma/client";
+import { IPageableResult } from "../common/pagination";
+
+// Interface representing the common methods of a Prisma Delegate
+export interface PrismaModelDelegate<T> {
+  findMany(args?: any): Prisma.PrismaPromise<T[]>;
+  findUnique(args?: any): Prisma.PrismaPromise<T | null>;
+  create(args: { data: any }): Prisma.PrismaPromise<T>;
+  update(args: { where: any; data: any }): Prisma.PrismaPromise<T>;
+  delete(args: { where: any }): Prisma.PrismaPromise<T>;
+  count(args?: { where?: any }): Prisma.PrismaPromise<number>;
+}
+
 export interface IBaseRepository<TEntity, TFilters> {
-  findAll(request: IPageableRequest<TFilters>): Promise<TEntity[]>;
-  findById(id: string): Promise<TEntity | null>;
+  buildQueryFilters(filters: TFilters): Promise<Record<string, unknown>>;
+  findAll(
+    request: IPageableRequest<TFilters>,
+    includes: Record<string, any>
+  ): Promise<IPageableResult<TEntity>>;
+  findById(
+    id: string,
+    includes: Record<string, unknown>
+  ): Promise<TEntity | null>;
   create(data: any): Promise<TEntity>;
   update(id: string, data: any): Promise<TEntity | null>;
-  delete(id: string): Promise<TEntity | null>;
+  delete(id: string): Promise<TEntity>;
 }
 
 export interface IPageableRequest<TFilters = Record<string, unknown>> {

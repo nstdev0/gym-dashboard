@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/apiFetch";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,8 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ErrorMessage } from "@/components/ui/FormError";
 import {
   Select,
   SelectContent,
@@ -16,235 +18,257 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { Controller, type SubmitHandler, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
+import { Controller, useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
+import { useUpdateUser } from "@/features/users/mutations";
+import { getUser } from "@/features/users/requests";
 import {
   userUpdateSchema,
-  type User,
-  type UserUpdate,
+  type UserUpdateInput,
 } from "../../../../../server/src/domain/entities/user";
 
-export default function EditUserForm({ id }: { id: string }) {
+import { UserPlus, Save, Undo2, Mail, Lock, User, Shield } from "lucide-react";
+
+export default function EditUserForm() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams<{ id: string }>();
+
+  const { data: response, isLoading, isError } = useQuery({
+    queryKey: ["user", id],
+    queryFn: () => getUser(id!),
+    enabled: !!id,
+  });
+  const user = response?.data;
 
   const {
     register,
     handleSubmit,
     control,
     reset,
-    formState: { isSubmitting, errors },
-  } = useForm<UserUpdate>({
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(userUpdateSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      username: "",
+      email: "",
+      password: "", // Optional in update
+      role: "STAFF" as const,
+      isActive: true,
+    },
   });
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "OWNER") {
-      alert("No tienes permiso para editar usuarios");
-      navigate("/admin/dashboard/usuarios");
-      return;
-    }
-
-    const fetchUserDetails = async () => {
-      try {
-        const userDetail: User = await apiFetch(`/users/${id}`);
-        userDetail.password = "";
-        reset(userDetail);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserDetails();
-  }, [id, reset, navigate]);
-
-  const onSubmit: SubmitHandler<UserUpdate> = async (data) => {
-    try {
-      const role = localStorage.getItem("role");
-      if (role !== "OWNER") {
-        throw new Error("No tienes permiso para editar usuarios");
-      }
-      await apiFetch(`/users/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
+    if (user) {
+      reset({
+        firstName: user.firstName,
+        lastName: user.lastName || "",
+        username: user.username || "",
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        password: "", // Don't fill password
       });
-      navigate("/admin/dashboard/usuarios");
-    } catch (error) {
-      console.error("Error updating user", error);
-      alert("Error al actualizar usuario");
     }
+  }, [user, reset]);
+
+  const { mutate, isPending } = useUpdateUser();
+
+  const onSubmit = (data: UserUpdateInput) => {
+    if (!id) return;
+    // Remove empty password to avoid trying to update it with empty string if schema allows but backend hashes
+    if (!data.password) {
+        delete data.password;
+    }
+    
+    mutate(
+      { id, data },
+      {
+        onSuccess: () => {
+          navigate("/admin/dashboard/usuarios");
+        },
+      }
+    );
   };
 
-  const handleDelete = async (id: string | number) => {
-    try {
-      const confirm = window.confirm("Estas seguro de eliminar este usuario?");
-      if (!confirm) {
-        return;
-      }
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No se encontro token");
-      }
-      const role = localStorage.getItem("role");
-      if (role !== "OWNER") {
-        throw new Error("No tienes permiso para eliminar usuarios");
-      }
-      await apiFetch(`/users/${id}`, {
-        method: "DELETE",
-      });
-      navigate("/admin/dashboard/usuarios");
-    } catch (error) {
-      console.error("Error eliminando usuario:", error);
-    }
-  };
-
-  if (isLoading) {
-    return <div className="p-4 text-center">Cargando datos del usuario...</div>;
-  }
+  if (isLoading) return <EditUserSkeleton />;
+  if (isError) return <div className="text-destructive">Error al cargar el usuario</div>;
 
   return (
-    <Card className="m-auto w-full max-w-2xl border-border/60">
-      <CardHeader>
-        <CardTitle>Editar Usuario</CardTitle>
-        <CardDescription>
-          Actualiza la información del usuario. Dejar contraseña en blanco para
-          mantener la actual.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FieldSet>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <FieldLabel htmlFor="firstName">
-                  Nombres <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Input {...register("firstName")} placeholder="Nombres" />
-                {errors.firstName && (
-                  <span className="text-red-500 text-sm">
-                    {errors.firstName.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="lastName">Apellidos</FieldLabel>
-                <Input {...register("lastName")} placeholder="Apellidos" />
-                {errors.lastName && (
-                  <span className="text-red-500 text-sm">
-                    {errors.lastName.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="username">Usuario</FieldLabel>
-                <Input {...register("username")} placeholder="Usuario" />
-                {errors.username && (
-                  <span className="text-red-500 text-sm">
-                    {errors.username.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="email">
-                  Email <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Input
-                  type="email"
-                  {...register("email")}
-                  placeholder="Email"
-                />
-                {errors.email && (
-                  <span className="text-red-500 text-sm">
-                    {errors.email.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                <Input
-                  type="password"
-                  {...register("password")}
-                  placeholder="Nueva contraseña (opcional)"
-                />
-                {errors.password && (
-                  <span className="text-red-500 text-sm">
-                    {errors.password.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="role">Rol</FieldLabel>
-                <Controller
-                  control={control}
-                  name="role"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Rol" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="OWNER">Owner</SelectItem>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="STAFF">Staff</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.role && (
-                  <span className="text-red-500 text-sm">
-                    {errors.role.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="isActive">Activo</FieldLabel>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className={
-                          field.value
-                            ? "data-[state=checked]:bg-green-600"
-                            : "data-[state=unchecked]:bg-slate-300"
-                        }
-                      />
-                      <span
-                        className={`text-sm font-medium ${
-                          field.value ? "text-green-600" : "text-slate-500"
-                        }`}
-                      >
-                        {field.value ? "ACTIVO" : "INACTIVO"}
-                      </span>
-                    </div>
-                  )}
-                />
-              </Field>
+    <Card className="mx-auto w-full max-w-4xl border-border/60 shadow-md">
+      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
+        <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-full text-primary">
+            <UserPlus className="h-5 w-5" />
             </div>
-          </FieldSet>
-          <div className="flex justify-end pt-4 gap-2">
+            <div>
+            <CardTitle className="text-lg">Editar Usuario</CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+                Modifica los datos del usuario. Dejar contraseña en blanco para mantener la actual.
+            </CardDescription>
+            </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Columna Izquierda: Datos Personales */}
+            <div className="space-y-5">
+               <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider">
+                  <User className="h-3.5 w-3.5" />
+                  <h3>Datos Personales</h3>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-xs">Nombres <span className="text-destructive">*</span></Label>
+                    <Input className="h-9 text-sm" {...register("firstName")} />
+                    <ErrorMessage message={errors.firstName?.message} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-xs">Apellidos</Label>
+                    <Input className="h-9 text-sm" {...register("lastName")} />
+                    <ErrorMessage message={errors.lastName?.message} />
+                  </div>
+               </div>
+
+               <div className="space-y-2">
+                  <Label htmlFor="username" className="text-xs">Nombre de Usuario</Label>
+                  <div className="relative">
+                      <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input className="h-9 pl-9 text-sm" {...register("username")} />
+                  </div>
+                  <ErrorMessage message={errors.username?.message} />
+               </div>
+            </div>
+
+            {/* Columna Derecha: Acceso y Rol */}
+            <div className="space-y-5">
+               <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider">
+                  <Shield className="h-3.5 w-3.5" />
+                  <h3>Credenciales y Acceso</h3>
+               </div>
+
+               <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs">Correo Electrónico <span className="text-destructive">*</span></Label>
+                  <div className="relative">
+                      <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input className="h-9 pl-9 text-sm" type="email" {...register("email")} />
+                  </div>
+                  <ErrorMessage message={errors.email?.message} />
+               </div>
+
+               <div className="space-y-2">
+                  <Label htmlFor="password" className="text-xs">Nueva Contraseña (Opcional)</Label>
+                  <div className="relative">
+                      <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input className="h-9 pl-9 text-sm" type="password" {...register("password")} placeholder="Dejar en blanco para no cambiar" />
+                  </div>
+                  <ErrorMessage message={errors.password?.message} />
+               </div>
+
+               <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                     <Label className="text-xs">Rol</Label>
+                     <Controller
+                        control={control}
+                        name="role"
+                        render={({ field }) => (
+                           <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-sm">
+                                 <SelectValue placeholder="Seleccionar rol" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                 <SelectItem value="ADMIN">Administrador</SelectItem>
+                                 <SelectItem value="STAFF">Staff</SelectItem>
+                              </SelectContent>
+                           </Select>
+                        )}
+                     />
+                     <ErrorMessage message={errors.role?.message} />
+                  </div>
+
+                  <div className="flex flex-col justify-end pb-1.5">
+                      <div className="flex items-center justify-between rounded-lg border p-2 bg-muted/5 h-9">
+                        <Label className="text-xs cursor-pointer" htmlFor="isActive-switch">Activo</Label> 
+                        <Controller
+                          control={control}
+                          name="isActive"
+                          render={({ field }) => (
+                            <Switch
+                              id="isActive-switch"
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="scale-75"
+                            />
+                          )}
+                        />
+                    </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex justify-end gap-3 pt-6 border-t mt-2">
             <Button
-              variant="destructive"
               type="button"
-              disabled={isSubmitting}
-              onClick={() => handleDelete(id)}
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(-1)}
+              disabled={isPending}
             >
-              Eliminar usuario
+              <Undo2 className="mr-2 h-4 w-4" />
+              Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="min-w-32"
+            >
+              {isPending ? (
+                "Guardando..."
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Actualizar
+                </>
+              )}
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
   );
+}
+
+function EditUserSkeleton() {
+  return (
+     <Card className="mx-auto w-full max-w-4xl border-border/60 shadow-md">
+      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64 mt-2" />
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        <div className="grid grid-cols-2 gap-8">
+           <Skeleton className="h-64 w-full" />
+           <Skeleton className="h-64 w-full" />
+        </div>
+        <div className="flex justify-end gap-3">
+             <Skeleton className="h-10 w-24" />
+             <Skeleton className="h-10 w-32" />
+        </div>
+      </CardContent>
+    </Card>
+  )
 }

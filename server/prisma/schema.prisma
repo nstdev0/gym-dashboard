@@ -7,7 +7,10 @@ datasource db {
   provider = "mysql"
 }
 
-// --- ENUMS ---
+// --------------------------------------
+// ENUMS
+// --------------------------------------
+
 enum Gender {
   MALE
   FEMALE
@@ -49,7 +52,31 @@ enum InvoiceStatus {
   PARTIALLY_PAID
 }
 
-// --- MODELS ---
+// --------------------------------------
+// MODELS
+// --------------------------------------
+
+model User {
+  id String @id @default(cuid())
+
+  role      Role
+  firstName String
+  lastName  String?
+  username  String? @unique
+  email     String  @unique
+  password  String
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RELACIONES INVERSAS
+  // Necesarias para que el modelo Invoice pueda conectar con User
+  invoicesIssued  Invoice[] @relation("IssuedInvoices")
+  invoicesUpdated Invoice[] @relation("UpdatedInvoices")
+
+  @@map("users")
+}
 
 model Member {
   id String @id @default(cuid())
@@ -59,50 +86,36 @@ model Member {
   gender    Gender?
   birthDate DateTime? @db.Date
 
+  // Datos físicos
   height Float?
   weight Float?
 
+  // Identificación
   docType   DocType
   docNumber String
 
+  // Contacto
   phoneNumber String?
   email       String? @unique
+  address     String? // Para facturación
 
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relaciones
+  // RELACIONES
+  // Un miembro tiene un HISTORIAL de membresías (Array)
   memberships Membership[]
-  invoices    Invoice[]
 
-  @@unique([docType, docNumber])
-  // Índices para búsquedas rápidas
-  @@index([firstName])
-  @@index([lastName])
+  // Un miembro tiene muchas facturas
+  invoices Invoice[]
+
+  // ÍNDICES Y CONSTRAINTS
+  @@unique([docType, docNumber]) // No puede haber dos DNI iguales
+  @@index([firstName, lastName]) // Búsqueda rápida por nombre completo
   @@index([isActive])
   @@map("members")
-}
-
-model User {
-  id String @id @default(cuid())
-
-  role      Role
-  firstName String
-  lastName  String?
-  username  String?  @unique
-  email     String   @unique
-  password  String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Como un usuario puede emitir Y actualizar facturas, separamos las listas
-  invoicesIssued  Invoice[] @relation("IssuedInvoices")
-  invoicesUpdated Invoice[] @relation("UpdatedInvoices")
-
-  @@map("users")
 }
 
 model Plan {
@@ -113,15 +126,14 @@ model Plan {
 
   price Decimal @db.Decimal(10, 2)
 
-  isActive Boolean @default(true)
-
+  isActive       Boolean @default(true)
   durationInDays Int
-
-  // Relaciones
-  memberships Membership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relaciones
+  memberships Membership[]
 
   @@map("plans")
 }
@@ -129,38 +141,51 @@ model Plan {
 model Membership {
   id String @id @default(cuid())
 
-  // Claves foráneas
-  memberId  String
-  planId    String
+  // Claves Foráneas
+  memberId String
+  planId   String
+
+  // Fechas de vigencia
   startDate DateTime @db.Date
   endDate   DateTime @db.Date
 
-  status    MembershipStatus @default(ACTIVE)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  status MembershipStatus @default(ACTIVE)
+
+  // Snapshot del precio: Guardamos cuánto costó el plan en ESTE momento
+  // por si el Plan sube de precio en el futuro.
+  price Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  member   Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  member   Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
   plan     Plan      @relation(fields: [planId], references: [id], onDelete: Restrict)
   invoices Invoice[]
 
+  @@index([memberId])
+  @@index([status])
   @@map("memberships")
 }
 
 model Invoice {
   id String @id @default(cuid())
 
+  // Opcional: Número de serie legible (Ej: F001-230)
+  serialNumber String? @unique
+
   memberId     String
   membershipId String?
 
   amount Decimal @db.Decimal(10, 2)
 
-  issuedAt DateTime @default(now())
+  // Auditoría de fechas
+  issuedAt DateTime  @default(now())
+  paidAt   DateTime?
 
+  // Auditoría de usuarios
   issuedBy  String
   updatedBy String?
-
-  paidAt DateTime?
 
   status InvoiceStatus
   method PaymentMethod
@@ -168,13 +193,16 @@ model Invoice {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relaciones con Usuario (Staff)
+  // RELACIONES CON USUARIOS
   user       User  @relation("IssuedInvoices", fields: [issuedBy], references: [id])
   userUpdate User? @relation("UpdatedInvoices", fields: [updatedBy], references: [id])
 
-  // onDelete: Restrict -> Evita que borres un miembro si tiene facturas (seguridad contable)
-  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: Restrict)
-  member     Member      @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  // RELACIONES DE NEGOCIO
+  // Si borras una membresía, la factura NO se borra (SetNull), se mantiene por contabilidad.
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+
+  // No puedes borrar un miembro si tiene facturas (Restrict)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
 
   @@index([memberId])
   @@index([issuedAt])

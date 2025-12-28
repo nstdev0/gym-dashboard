@@ -1,4 +1,4 @@
-import { Home, NotebookPen, NotebookTabs, Users } from "lucide-react"
+import { Home, NotebookPen, NotebookTabs, Users } from "lucide-react";
 
 import {
   Sidebar,
@@ -9,12 +9,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // Menu items.
 const items = [
   {
-    title: "Home",
+    title: "Inicio",
     url: "/admin/dashboard/inicio",
     icon: Home,
   },
@@ -38,14 +38,14 @@ const items = [
     url: "/admin/dashboard/usuarios#",
     icon: Users,
   },
-]
+];
 
 export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-2xl font-bold mt-3 mb-6">Gym Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -63,5 +63,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

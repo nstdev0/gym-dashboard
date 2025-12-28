@@ -1,38 +1,45 @@
 import z from "zod";
-import { baseZ } from "./_base";
+import { capitalizeText } from "../../../../server/src/lib/utils/capitalize-text";
 
-export const planSchema = z
-  .object({
-    name: z
-      .string("El nombre del plan es inválido")
-      .min(1, "El nombre del plan no puede estar vacío"),
-    description: z
-      .string("La descripción del plan es inválida")
-      .optional()
-      .nullable(),
-    price: z
-      .number("El precio del plan es inválido")
-      .nonnegative("El precio del plan no puede ser negativo"),
-    durationInDays: z
-      .number("La duración del plan es inválida")
-      .int("La duración del plan debe ser un número entero")
-      .positive("La duración del plan debe ser un número positivo"),
-    isActive: z.boolean("El estado del plan es inválido").default(true),
-  })
-  .extend(baseZ.shape);
+// ---------------------------------------------------------
+// BASE SHAPE
+// ---------------------------------------------------------
+const planBaseShape = z.object({
+  name: z
+    .string("El nombre del plan es requerido")
+    .min(3, "Mínimo 3 caracteres")
+    .transform(capitalizeText),
 
-export type Plan = z.infer<typeof planSchema>;
+  description: z.string().optional().nullable(),
 
-export const planInsertSchema = planSchema.pick({
-  name: true,
-  description: true,
-  price: true,
-  durationInDays: true,
-  isActive: true,
+  // Coerce number permite recibir "99.90" del input y validarlo como número
+  price: z.coerce
+    .number("El precio es requerido")
+    .min(0, "El precio no puede ser negativo"),
+
+  durationInDays: z.coerce
+    .number("Duración requerida")
+    .int("Debe ser un número entero")
+    .positive("La duración debe ser mayor a 0"),
+
+  isActive: z.boolean().default(true),
 });
 
-export type PlanInsert = z.infer<typeof planInsertSchema>;
+// ---------------------------------------------------------
+// SCHEMAS CONCRETOS
+// ---------------------------------------------------------
 
-export const planUpdateSchema = planInsertSchema.partial();
+export const planSchema = planBaseShape.extend({
+  id: z.string().cuid(),
+  // Override de price para salida: Prisma Decimal suele serializarse a string en APIs
+  price: z.number().or(z.string()),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+export type Plan = z.infer<typeof planSchema>;
 
-export type PlanUpdate = z.infer<typeof planUpdateSchema>;
+export const planCreateSchema = planBaseShape;
+export type PlanCreateInput = z.infer<typeof planCreateSchema>;
+
+export const planUpdateSchema = planBaseShape.partial();
+export type PlanUpdateInput = z.infer<typeof planUpdateSchema>;

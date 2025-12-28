@@ -3,10 +3,10 @@ import UsersListingPage from "./components/users.listing";
 
 export default function UsersPage() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="flex flex-col h-full space-y-4">
       <PageHeader
         title="Usuarios"
-        description="Gestiona los usuarios y permisos del sistema"
+        description="Gestiona el acceso de los administradores y staff del sistema"
         buttonProps={[
           {
             to: "/admin/dashboard/usuarios/nuevo",

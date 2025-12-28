@@ -1,4 +1,3 @@
-import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,7 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ErrorMessage } from "@/components/ui/FormError";
 import {
   Select,
   SelectContent,
@@ -15,149 +17,245 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import type { Plan } from "../../../../../server/src/domain/entities/plan";
-import type { Member } from "../../../../../server/src/domain/entities/member";
+import { useQuery } from "@tanstack/react-query";
+
+import { useCreateMembership } from "@/features/memberships/mutations";
+import { getMembers } from "@/features/members/requests";
+import { getPlans } from "@/features/plans/requests";
 import {
-  membershipInsertSchema,
-  type MembershipInsert,
+  membershipCreateSchema,
+  type MembershipCreateInput,
 } from "../../../../../server/src/domain/entities/membership";
+
+import { CreditCard, Save, Undo2, Calendar, DollarSign } from "lucide-react";
+import type { Plan } from "@/entities/plan";
 
 export default function NewMembershipForm() {
   const navigate = useNavigate();
-  const [members, setMembers] = useState<Member[]>([]);
-  const [plans, setPlans] = useState<Plan[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const membersData: Member[] = await apiFetch("/members", {
-          method: "GET",
-        });
-        const plansData: Plan[] = await apiFetch("/plans", {
-          method: "GET",
-        });
-        setMembers(membersData);
-        setPlans(plansData);
-      } catch (error) {
-        console.error("Error fetching data", error);
-      }
-    };
-    fetchData();
-  }, []);
+  const { data: membersResponse } = useQuery({
+    queryKey: ["members", "all"],
+    queryFn: () => getMembers({ page: 1, pageSize: 10 }),
+  });
+  const members = membersResponse?.data?.records ?? [];
+
+  const { data: plansResponse } = useQuery({
+    queryKey: ["plans", "all"],
+    queryFn: () => getPlans({ page: 1, pageSize: 10 }),
+  });
+  const plans: Plan[] = plansResponse?.data?.records ?? [];
 
   const {
+    register,
     handleSubmit,
     control,
-    formState: { isSubmitting, errors },
+    setValue,
+    formState: { errors },
   } = useForm({
-    resolver: zodResolver(membershipInsertSchema),
+    resolver: zodResolver(membershipCreateSchema),
     defaultValues: {
       memberId: "",
       planId: "",
-      startDate: new Date(),
-      endDate: new Date(),
-      status: "ACTIVE",
+      price: 0,
+      status: "ACTIVE" as const,
     },
   });
 
-  const onSubmit: SubmitHandler<MembershipInsert> = async (data) => {
-    try {
-      const role = localStorage.getItem("role");
-      if (role !== "OWNER") {
-        throw new Error("No tienes permiso para crear membresias");
-      }
-      await apiFetch("/memberships", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      navigate("/admin/dashboard/membresias");
-    } catch (error) {
-      console.error("Error al crear membresia", error);
-      alert("Error al crear membresia");
-    }
+  const { mutate, isPending } = useCreateMembership();
+
+  const onSubmit = (data: MembershipCreateInput) => {
+    mutate(data, {
+      onSuccess: () => {
+        navigate("/admin/dashboard/membresias");
+      },
+    });
   };
 
   return (
-    <Card className="m-auto w-full max-w-2xl border-border/60">
-      <CardHeader>
-        <CardTitle>Registrar Nueva Membresía</CardTitle>
-        <CardDescription>
-          Selecciona el miembro y el plan para crear una nueva suscripción.
-        </CardDescription>
+    <Card className="mx-auto w-full max-w-3xl border-border/60 shadow-md">
+      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-full text-primary">
+            <CreditCard className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">Nueva Membresía</CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              Asigna un plan de suscripción a un miembro.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+
+      <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FieldSet>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <FieldLabel htmlFor="memberId">
-                  Miembro <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Controller
+          
+          {/* Selección de Miembro y Plan */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+               <Label className="text-xs">Miembro <span className="text-destructive">*</span></Label>
+               <Controller
                   control={control}
                   name="memberId"
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar miembro" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {members.map((member) => (
-                          <SelectItem
-                            key={member.id}
-                            value={member.id.toString()}
-                          >
-                            {member.firstName} {member.lastName} (
-                            {member.docNumber})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                       <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Seleccionar miembro" />
+                       </SelectTrigger>
+                       <SelectContent>
+                          {members.map(member => (
+                              <SelectItem key={member.id} value={member.id}>
+                                  {member.firstName} {member.lastName}
+                              </SelectItem>
+                          ))}
+                       </SelectContent>
                     </Select>
                   )}
-                />
-                {errors.memberId && (
-                  <span className="text-red-500 text-sm">
-                    {errors.memberId.message}
-                  </span>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="planId">
-                  Plan <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Controller
+               />
+               <ErrorMessage message={errors.memberId?.message} />
+            </div>
+
+            <div className="space-y-2">
+               <Label className="text-xs">Plan <span className="text-destructive">*</span></Label>
+               <Controller
                   control={control}
                   name="planId"
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar plan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {plans.map((plan) => (
-                          <SelectItem key={plan.id} value={plan.id.toString()}>
-                            {plan.name} - S/{plan.price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                    <Select onValueChange={(val) => {
+                        field.onChange(val);
+                        // Auto-fill logic
+                        const selectedPlan = plans.find(plan => plan.id === val);
+                        if(selectedPlan) {
+                           // 1. Set Price
+                           setValue("price", Number(selectedPlan.price));
+                           
+                           // 2. Set Start Date to Today
+                           const today = new Date();
+                           const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+                           setValue("startDate", todayStr);
+
+                           // 3. Set End Date (Today + Duration)
+                           const endDate = new Date(today);
+                           endDate.setDate(today.getDate() + selectedPlan.durationInDays);
+                           const endDateStr = endDate.toISOString().split("T")[0];
+                           setValue("endDate", endDateStr);
+                        }
+                    }} value={field.value}>
+                       <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Seleccionar plan" />
+                       </SelectTrigger>
+                       <SelectContent>
+                          {plans.map(plan => (
+                              <SelectItem key={plan.id} value={plan.id}>
+                                  {plan.name} - S/ {Number(plan.price).toFixed(2)} ({plan.durationInDays} días)
+                              </SelectItem>
+                          ))}
+                       </SelectContent>
                     </Select>
                   )}
-                />
-                {errors.planId && (
-                  <span className="text-red-500 text-sm">
-                    {errors.planId.message}
-                  </span>
-                )}
-              </Field>
+               />
+               <ErrorMessage message={errors.planId?.message} />
             </div>
-          </FieldSet>
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Registrando..." : "Registrar membresía"}
+          </div>
+
+          <div className="my-2 border-t border-dashed" />
+
+          {/* Fechas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+               <Label htmlFor="startDate" className="text-xs">Fecha Inicio <span className="text-destructive">*</span></Label>
+               <div className="relative">
+                  <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                      className="h-9 pl-9 text-sm" 
+                      type="date"
+                      {...register("startDate")}
+                  />
+               </div>
+               <ErrorMessage message={errors.startDate?.message} />
+            </div>
+
+            <div className="space-y-2">
+               <Label htmlFor="endDate" className="text-xs">Fecha Fin <span className="text-destructive">*</span></Label>
+               <div className="relative">
+                  <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                      className="h-9 pl-9 text-sm" 
+                      type="date"
+                      {...register("endDate")}
+                  />
+               </div>
+               <ErrorMessage message={errors.endDate?.message} />
+            </div>
+          </div>
+
+          {/* Precio y Estado */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-2">
+                <Label htmlFor="price" className="text-xs">Precio Final (PEN) <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                   <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                   <Input 
+                      className="h-9 pl-9 text-sm" 
+                      type="number" 
+                      step="0.01"
+                      {...register("price", { valueAsNumber: true })}
+                   />
+                </div>
+                <ErrorMessage message={errors.price?.message} />
+             </div>
+
+             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">Estado Activo</Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Membresía vigente.
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="status"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value === "ACTIVE"}
+                      onCheckedChange={(checked) => field.onChange(checked ? "ACTIVE" : "INACTIVE")}
+                      className="scale-90"
+                    />
+                  )}
+                />
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(-1)}
+              disabled={isPending}
+            >
+              <Undo2 className="mr-2 h-4 w-4" />
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="min-w-32"
+            >
+              {isPending ? (
+                "Guardando..."
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Crear Membresía
+                </>
+              )}
             </Button>
           </div>
         </form>

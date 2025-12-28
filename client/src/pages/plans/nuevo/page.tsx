@@ -3,10 +3,10 @@ import NewPlanForm from "../components/new-plan-form";
 
 export default function NewPlanPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto pb-6">
       <PageHeader
-        title="Agregar un plan"
-        description="Ingresa los datos del nuevo plan"
+        title="Crear Plan"
+        description="Agrega un nuevo plan de suscripción al sistema"
         buttonProps={[
           {
             to: "/admin/dashboard/planes",

@@ -1,5 +1,6 @@
 export abstract class BaseError extends Error {
   constructor(
+    public readonly code: string,
     public readonly message: string,
     public readonly statusCode: number,
     public readonly isOperational: boolean

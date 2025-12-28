@@ -1,41 +1,100 @@
 import z from "zod";
-import { baseZ } from "./_base";
-import { MembershipStatusEnum } from "../enums/membership-status.enum";
-import { type Plan } from "./plan";
-import { type Member } from "./member";
+import { MembershipStatusEnum } from "../../../../server/src/domain/enums/membership-status.enum";
+import { DocTypeEnum } from "../../../../server/src/domain/enums/doctype.enum"; // Asegúrate de tener esto
+import { GenderEnum } from "../../../../server/src/domain/enums/gender.enum"; // Y esto
 
-export const membershipSchema = z
-  .object({
-    memberId: z.cuid2("El ID del miembro es inválido"),
-    planId: z.cuid2("El ID del plan es inválido"),
-    startDate: z
-      .preprocess((val) => (typeof val === "string" ? new Date(val) : val), z.date())
-      .default(new Date()),
-    endDate: z.preprocess(
-      (val) => (typeof val === "string" ? new Date(val) : val),
-      z.date()
-    ),
-    status: MembershipStatusEnum,
-  })
-  .extend(baseZ.shape);
+// ---------------------------------------------------------
+// 1. SCHEMAS "LITE" (Para romper Dependencias Circulares)
+// ---------------------------------------------------------
+// Definimos versiones ligeras de Member y Plan aquí mismo.
+
+const memberLiteSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  docType: DocTypeEnum,
+  docNumber: z.string(),
+  email: z.string().nullable(),
+  phoneNumber: z.string().nullable().optional(),
+  isActive: z.boolean(),
+  gender: GenderEnum.nullable().optional(),
+});
+
+const planLiteSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.coerce.number(), 
+  durationInDays: z.number(),
+});
+
+// ---------------------------------------------------------
+// 2. VALIDACIONES DE FECHA (Cross-field)
+// ---------------------------------------------------------
+const validateDates = (
+  data: { startDate?: Date | null; endDate?: Date | null },
+  ctx: z.RefinementCtx
+) => {
+  if (data.startDate && data.endDate) {
+    if (data.endDate < data.startDate) {
+      ctx.addIssue({
+        code: "custom",
+        message: "La fecha de fin no puede ser anterior a la de inicio",
+        path: ["endDate"],
+      });
+    }
+  }
+};
+
+// ---------------------------------------------------------
+// 3. BASE SHAPE (Datos Planos)
+// ---------------------------------------------------------
+const membershipBaseShape = z.object({
+  memberId: z.cuid2(),
+  planId: z.cuid2(),
+
+  // Coerce transforma el string "2025-12-27T..." a objeto Date real
+  startDate: z.coerce.date("Inicio requerido"),
+  endDate: z.coerce.date("Fin requerido"),
+
+  status: MembershipStatusEnum.default("ACTIVE"),
+  
+  // Precio de la membresía específica (Snapshot)
+  price: z.coerce.number().min(0),
+});
+
+// ---------------------------------------------------------
+// 4. SCHEMAS FINALES
+// ---------------------------------------------------------
+
+/**
+ * SCHEMA DE LECTURA (Lo que recibes de la API)
+ * Incluye los objetos anidados 'member' y 'plan' usando los Lite Schemas
+ */
+export const membershipSchema = membershipBaseShape.extend({
+  id: z.cuid2(),
+  createdAt: z.coerce.date(), // Transforma el ISO string a Date
+  updatedAt: z.coerce.date(),
+  
+  // ✅ AQUÍ USAMOS LOS LITE SCHEMAS
+  member: memberLiteSchema.optional(), 
+  plan: planLiteSchema.optional(),
+});
 
 export type Membership = z.infer<typeof membershipSchema>;
 
-export const membershipInsertSchema = membershipSchema.pick({
-  memberId: true,
-  planId: true,
-  startDate: true,
-  endDate: true,
-  status: true,
-});
+/**
+ * SCHEMA DE CREACIÓN (Lo que envías al crear)
+ */
+export const membershipCreateSchema = membershipBaseShape
+  .superRefine(validateDates);
 
-export type MembershipInsert = z.infer<typeof membershipInsertSchema>;
+export type MembershipCreateInput = z.infer<typeof membershipCreateSchema>;
 
-export const membershipUpdateSchema = membershipInsertSchema.partial();
+/**
+ * SCHEMA DE ACTUALIZACIÓN (Lo que envías al editar)
+ */
+export const membershipUpdateSchema = membershipBaseShape
+  .partial()
+  .superRefine(validateDates);
 
-export type MembershipUpdate = z.infer<typeof membershipUpdateSchema>;
-
-export type membershipDetailSchema = Membership & {
-  member: Member;
-  plan: Plan;
-};
+export type MembershipUpdateInput = z.infer<typeof membershipUpdateSchema>;

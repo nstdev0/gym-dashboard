@@ -3,10 +3,10 @@ import NewUserForm from "../components/new-user-form";
 
 export default function NewUserPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto pb-6">
       <PageHeader
-        title="Agregar un usuario"
-        description="Ingresa los datos del nuevo usuario"
+        title="Crear Usuario"
+        description="Agrega un nuevo usuario con acceso al dashboard"
         buttonProps={[
           {
             to: "/admin/dashboard/usuarios",

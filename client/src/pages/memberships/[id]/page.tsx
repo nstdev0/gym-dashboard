@@ -1,6 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
 import MembershipDetail from "../components/membership.detail";
-
 import { useParams } from "react-router-dom";
 
 export default function MembershipDetailPage() {
@@ -9,15 +8,15 @@ export default function MembershipDetailPage() {
   if (!id) return <div>Invalid ID</div>;
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto pb-6">
       <PageHeader
-        title="Membresía"
-        description="Detalles de la membresía"
+        title="Detalle de Membresía"
+        description="Información completa de la suscripción"
         buttonProps={[
-        //   {
-        //     to: `/admin/dashboard/membresias/${id}/editar`,
-        //     text: "Editar",
-        //   },
+          {
+            to: `/admin/dashboard/membresias/${id}/editar`,
+            text: "Editar",
+          },
           {
             to: "/admin/dashboard/membresias",
             text: "Regresar",

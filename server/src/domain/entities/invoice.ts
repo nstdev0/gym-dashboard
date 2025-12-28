@@ -1,44 +1,53 @@
 import z from "zod";
-import { baseZ } from "./_base";
-import { InvoiceStatusEnum } from "../enums/invoice-status.enum";
-import { PaymentMethodEnum } from "../enums/payment-method.enum";
+import { InvoiceStatusEnum } from "../../../../server/src/domain/enums/invoice-status.enum";
+import { PaymentMethodEnum } from "../../../../server/src/domain/enums/payment-method.enum";
 
-export const InvoiceSchema = z
-  .object({
-    memberId: z.number("El ID del miembro debe ser un número"),
-    membershipId: z
-      .number("El ID de la membresía debe ser un número")
-      .optional()
-      .nullable(),
-    amount: z
-      .number("El monto debe ser un número")
-      .positive("El monto debe ser un número positivo"),
-    issuedAt: z.date("La fecha de emisión es inválida"),
-    issuedBy: z
-      .number("El ID del emisor debe ser un número")
-      .optional()
-      .nullable(),
-    paidAt: z.date("La fecha de pago es inválida").optional().nullable(),
-    status: InvoiceStatusEnum,
-    method: PaymentMethodEnum,
-  })
-  .extend(baseZ.shape);
+// ---------------------------------------------------------
+// BASE SHAPE
+// ---------------------------------------------------------
+const invoiceBaseShape = z.object({
+  memberId: z.string().cuid("ID de miembro requerido"),
 
-export type Invoice = z.infer<typeof InvoiceSchema>;
+  // Opcional porque puedes vender productos sueltos sin membresía
+  membershipId: z.string().cuid().optional().nullable(),
 
-export const InvoiceInsertSchema = InvoiceSchema.pick({
-  memberId: true,
-  membershipId: true,
-  amount: true,
-  issuedAt: true,
-  issuedBy: true,
-  paidAt: true,
-  status: true,
-  method: true,
+  amount: z.coerce
+    .number("Monto requerido")
+    .min(0, "El monto no puede ser negativo"),
+
+  currency: z.string().default("PEN"), // Soles por defecto
+
+  status: InvoiceStatusEnum.default("PENDING"),
+  method: PaymentMethodEnum,
+
+  notes: z.string().optional().nullable(),
+
+  // Fechas que pueden venir manuales o ser calculadas
+  issuedAt: z.coerce.date().default(() => new Date()),
+  paidAt: z.coerce.date().optional().nullable(),
+
+  // IDs de staff (normalmente se inyectan en backend, pero el form puede requerirlo)
+  issuedBy: z.string().cuid().optional(),
 });
 
-export type InvoiceInsert = z.infer<typeof InvoiceInsertSchema>;
+// ---------------------------------------------------------
+// SCHEMAS CONCRETOS
+// ---------------------------------------------------------
 
-export const InvoiceUpdateSchema = InvoiceInsertSchema.partial();
+export const invoiceSchema = invoiceBaseShape.extend({
+  id: z.string().cuid(),
+  serialNumber: z.string().nullable(), // Backend lo genera
+  amount: z.number().or(z.string()), // Salida Decimal
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  // issuedBy es obligatorio en la BD, aquí lo forzamos en la salida
+  issuedBy: z.string().cuid(),
+});
+export type Invoice = z.infer<typeof invoiceSchema>;
 
-export type InvoiceUpdate = z.infer<typeof InvoiceUpdateSchema>;
+/** CREATE: SerialNumber no se envía, lo genera el sistema */
+export const invoiceCreateSchema = invoiceBaseShape;
+export type InvoiceCreateInput = z.infer<typeof invoiceCreateSchema>;
+
+export const invoiceUpdateSchema = invoiceBaseShape.partial();
+export type InvoiceUpdateInput = z.infer<typeof invoiceUpdateSchema>;
