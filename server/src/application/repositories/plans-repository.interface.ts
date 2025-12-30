@@ -6,8 +6,7 @@ export type PlansFilters = {
   isActive?: boolean | null;
 };
 
-export interface IPlansRepository
-  extends IBaseRepository<Plan, PlansFilters> {
+export interface IPlansRepository extends IBaseRepository<Plan, PlansFilters> {
   // Add specific methods if needed, e.g., findByName
   findByName(name: string): Promise<Plan | null>;
 }

@@ -33,10 +33,4 @@ export class UserRepository
 
     return whereClause;
   }
-
-  async findByEmail(email: string): Promise<User | null> {
-    return await prisma.user.findUnique({
-      where: { email },
-    });
-  }
 }

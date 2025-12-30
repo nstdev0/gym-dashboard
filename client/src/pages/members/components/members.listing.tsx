@@ -1,7 +1,6 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Icons
 import {
   Search,
   MoreHorizontal,
@@ -37,24 +35,20 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// Logic & Types
 import { useDeleteMember } from "@/features/members/mutations";
 import { getMembers } from "@/features/members/requests";
-import type { Member } from "@/entities/member";
-// Si no tienes esta interfaz ApiResponse, usa 'any' temporalmente en useQuery
 import { type ApiResponse } from "../../../../../server/src/types/api";
 import { type IPageableResult } from "../../../../../server/src/application/common/pagination";
+import type { Member } from "@server/entities/member";
 
 export default function MembersListingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Params
   const CURRENT_PAGE = parseInt(searchParams.get("page") || "1");
   const PAGE_SIZE = parseInt(searchParams.get("pageSize") || "10");
   const search = searchParams.get("search") || "";
 
-  // React Query
   const request = {
     filters: { search },
     page: CURRENT_PAGE,
@@ -71,13 +65,11 @@ export default function MembersListingPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Derived State
   const result = response?.data;
   const records = result?.records ?? [];
   const totalRecords = result?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  // Handlers
   const handleSearch = (term: string) => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -104,7 +96,6 @@ export default function MembersListingPage() {
     }
   };
 
-  // Helper para iniciales
   const getInitials = (first: string, last: string) => {
     return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
   };
@@ -187,7 +178,7 @@ export default function MembersListingPage() {
                     member.memberships
                       ?.map((m) => m.plan?.name)
                       .filter(Boolean) || [];
-                  const activePlan = plans.length > 0 ? plans[0] : null; // Mostramos solo el primero/actual
+                  const activePlan = plans.length > 0 ? plans[0] : null;
 
                   return (
                     <TableRow
@@ -339,7 +330,6 @@ export default function MembersListingPage() {
   );
 }
 
-// SKELETON LOADER COMPONENT
 function MembersTableSkeleton() {
   return (
     <div className="p-4">

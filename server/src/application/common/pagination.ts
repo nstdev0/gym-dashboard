@@ -1,6 +1,6 @@
 export interface IPageableRequest<TFilters = Record<string, unknown>> {
-  page: number;
-  pageSize: number;
+  page?: number;
+  pageSize?: number;
   filters?: TFilters;
 }
 

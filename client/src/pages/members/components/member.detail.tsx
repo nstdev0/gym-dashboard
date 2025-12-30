@@ -21,6 +21,7 @@ import {
   CreditCard,
   AlertCircle,
 } from "lucide-react";
+import type { Membership } from "@server/entities/membership";
 
 // Helper para formatear fechas
 const formatDate = (date?: Date | string | null) => {
@@ -58,7 +59,7 @@ export default function MemberDetail({ id }: { id: string }) {
   // Lógica para encontrar la membresía relevante (La activa o la última registrada)
   // Asumimos que el backend devuelve las membresías ordenadas, o buscamos la activa.
   const activeMembership = member.memberships?.find(
-    (m) => m.status === "ACTIVE"
+    (membership: Membership) => membership.status === "ACTIVE"
   );
   const latestMembership = member.memberships?.[0];
   const displayMembership = activeMembership || latestMembership;
@@ -147,7 +148,7 @@ export default function MemberDetail({ id }: { id: string }) {
             <InfoItem
               icon={<Calendar className="h-4 w-4" />}
               label="Nacimiento"
-              value={formatDate(member.birthDate)}
+              value={member.birthDate ? formatDate(member.birthDate) : null}
             />
           </div>
 
@@ -165,8 +166,14 @@ export default function MemberDetail({ id }: { id: string }) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Altura</p>
-                  <p className="text-lg font-medium">
-                    {member.height ? `${member.height} cm` : "-"}
+                  <p
+                    className={`${
+                      member.height
+                        ? ""
+                        : "text-muted-foreground/50 italic text-sm"
+                    } text-lg font-medium`}
+                  >
+                    {member.height ? `${member.height} cm` : "No registrado"}
                   </p>
                 </div>
               </div>
@@ -177,8 +184,14 @@ export default function MemberDetail({ id }: { id: string }) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Peso</p>
-                  <p className="text-lg font-medium">
-                    {member.weight ? `${member.weight} kg` : "-"}
+                  <p
+                    className={`${
+                      member.weight
+                        ? ""
+                        : "text-muted-foreground/50 italic text-sm"
+                    } text-lg font-medium`}
+                  >
+                    {member.weight ? `${member.weight} kg` : "No registrado"}
                   </p>
                 </div>
               </div>
@@ -227,7 +240,6 @@ export default function MemberDetail({ id }: { id: string }) {
   );
 }
 
-// Sub-componente para limpiar el código principal
 type InfoItemProps = {
   icon?: React.ReactNode;
   label: string;
@@ -250,7 +262,6 @@ function InfoItem({ icon, label, value, className = "" }: InfoItemProps) {
   );
 }
 
-// Skeleton para mejorar la UX de carga
 function MemberDetailSkeleton() {
   return (
     <Card className="w-full">

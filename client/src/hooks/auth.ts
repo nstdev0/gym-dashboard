@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/apiFetch";
+import { apiFetch } from "@/lib/api/api-fetch";
 import { useState, useEffect } from "react";
 
 export function useAuth() {

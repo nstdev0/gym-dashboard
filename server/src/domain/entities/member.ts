@@ -67,6 +67,8 @@ const memberBaseShape = z.object({
     .min(2, "Mínimo 2 caracteres")
     .transform(capitalizeText),
 
+  address: z.string().optional().nullable(), // Para facturación
+
   gender: GenderEnum.optional().nullable(), // Prisma: Gender?
 
   // z.coerce es VITAL para formularios: convierte "2000-01-01" a Date

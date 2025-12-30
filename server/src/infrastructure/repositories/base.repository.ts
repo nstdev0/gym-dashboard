@@ -3,11 +3,9 @@ import {
   IBaseRepository,
   IPageableRequest,
 } from "../../application/repositories/base-repository.interface";
-
-import { ConnectionError } from "../../domain/errors/connection-error";
+import { prisma } from "../../lib/prisma"; // Ajusta tu import de prisma
 import { AppError } from "../../domain/errors/app-error";
 import { IPageableResult } from "../../application/common/pagination";
-import { prisma } from "../../lib/prisma";
 
 export abstract class BaseRepository<TEntity, TFilters>
   implements IBaseRepository<TEntity, TFilters>
@@ -19,16 +17,20 @@ export abstract class BaseRepository<TEntity, TFilters>
   ): Promise<Record<string, unknown>>;
 
   async findAll(
-    request: IPageableRequest<TFilters>,
-    includes?: any
+    request?: IPageableRequest<TFilters>,
+    includes?: Record<string, unknown>
   ): Promise<IPageableResult<TEntity>> {
     try {
-      const safePage = Math.max(1, request.page);
-      const safePageSize = Number(request.pageSize);
+      const page = request?.page;
+      const pageSize = request?.pageSize;
+
+      const isPaginationEnabled = page !== undefined && pageSize !== undefined;
+
+      const skip = isPaginationEnabled ? (page - 1) * pageSize : undefined;
+      const take = isPaginationEnabled ? pageSize : undefined;
 
       let whereClause: any = {};
-
-      if (request.filters) {
+      if (request?.filters) {
         const dynamicFilters = await this.buildQueryFilters(request.filters);
         whereClause = { ...whereClause, ...dynamicFilters };
       }
@@ -37,22 +39,22 @@ export abstract class BaseRepository<TEntity, TFilters>
         this.model.count({ where: whereClause }),
         this.model.findMany({
           where: whereClause,
-          take: safePageSize,
-          skip: (safePage - 1) * safePageSize,
+          take: take,
+          skip: skip,
           include: includes,
           orderBy: { createdAt: "desc" },
         }),
       ]);
 
-      const totalPages = Math.ceil(total / safePageSize);
+      const totalPages = isPaginationEnabled ? Math.ceil(total / pageSize) : 1;
 
       return {
         totalRecords: total,
-        currentPage: safePage,
-        pageSize: safePageSize,
+        currentPage: page || 1,
+        pageSize: pageSize || total,
         totalPages: totalPages,
-        hasNext: safePage < totalPages,
-        hasPrevious: safePage > 1,
+        hasNext: isPaginationEnabled ? page * pageSize < total : false,
+        hasPrevious: isPaginationEnabled ? page > 1 : false,
         records: data,
       };
     } catch (error) {
@@ -74,11 +76,9 @@ export abstract class BaseRepository<TEntity, TFilters>
     }
   }
 
-  async findUnique(where: Partial<TEntity>): Promise<TEntity | null> {
+  async findUnique(where: Record<string, unknown>): Promise<TEntity | null> {
     try {
-      return await this.model.findUnique({
-        where,
-      });
+      return await this.model.findUnique({ where: where });
     } catch (error) {
       this.handleError(error);
     }
@@ -86,9 +86,7 @@ export abstract class BaseRepository<TEntity, TFilters>
 
   async create(data: any): Promise<TEntity> {
     try {
-      return await this.model.create({
-        data,
-      });
+      return await this.model.create({ data });
     } catch (error) {
       this.handleError(error);
     }
@@ -97,7 +95,7 @@ export abstract class BaseRepository<TEntity, TFilters>
   async update(id: string, data: any): Promise<TEntity | null> {
     try {
       return await this.model.update({
-        where: { id: id },
+        where: { id },
         data,
       });
     } catch (error) {
@@ -108,7 +106,7 @@ export abstract class BaseRepository<TEntity, TFilters>
   async delete(id: string): Promise<TEntity> {
     try {
       return await this.model.delete({
-        where: { id: id },
+        where: { id },
       });
     } catch (error) {
       this.handleError(error);
@@ -117,31 +115,31 @@ export abstract class BaseRepository<TEntity, TFilters>
 
   protected handleError(error: any): never {
     if (error?.code === "P2002") {
-      throw new AppError(error?.code, "Unique constraint violation", 409);
+      // Extract constraint name if available, otherwise use a generic message
+      const constraint = error.meta?.target ? error.meta.target.join(', ') : 'unique';
+      throw new AppError(
+        `Unique constraint failed on the ${constraint} constraint`,
+        409,
+        "UNIQUE_CONSTRAINT"
+      );
     }
     if (error?.code === "P2003") {
       throw new AppError(
-        error?.code,
-        "No se puede eliminar este registro porque tiene relaciones activas (ej. membresias, pagos).",
-        400
-      );
-    }
-    if (error?.code === "P2028") {
-      throw new AppError(
-        error?.code,
-        "Operation timed out. Please try again later.",
-        504
+        "No se puede eliminar este registro porque tiene relaciones activas (ej. facturas, membresías).",
+        400,
+        "CONSTRAINT_VIOLATION"
       );
     }
     if (error?.code === "P2025") {
-      throw new AppError(error?.code, "Record not found", 404);
-    }
-    // Prisma connection errors usually start with P1
-    if (error?.code?.startsWith("P1")) {
-      throw new ConnectionError("Database connection failed");
+      throw new AppError("Registro no encontrado.", 404, "NOT_FOUND");
     }
 
     console.error("Repository Error:", error);
-    throw new AppError(error?.code, "Database operation failed");
+    // Handle cleanup for other potential Prisma errors or generic errors
+    throw new AppError(
+      error instanceof Error ? error.message : "Error en la operación de base de datos.",
+      500,
+      "DB_ERROR"
+    );
   }
 }

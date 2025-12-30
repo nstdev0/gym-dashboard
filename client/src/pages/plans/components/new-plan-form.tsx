@@ -160,7 +160,9 @@ export default function NewPlanForm() {
             <Textarea
               className="resize-none text-sm"
               rows={3}
-              {...register("description")}
+              {...register("description", {
+                setValueAs: (v) => (v === "" ? null : v),
+              })}
               placeholder="Detalles adicionales del plan..."
             />
             <ErrorMessage message={errors.description?.message} />

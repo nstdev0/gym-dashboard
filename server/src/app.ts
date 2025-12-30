@@ -8,8 +8,8 @@ import usersRouter from "./routes/users/user.routes";
 import plansRouter from "./routes/plans/plan.routes";
 import membershipRouter from "./routes/memberships/membership.routes";
 
-import { verifyTokenMiddleware } from "./lib/api/jwt";
-import { errorHandler } from "./interface-adapters/middlewares/error-handler.middleware";
+import { verifyTokenMiddleware } from "@lib/auth/jwt";
+import { errorHandler } from "./middlewares/error-handler.middleware";
 
 const app = express();
 

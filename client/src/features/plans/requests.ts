@@ -1,12 +1,12 @@
-import { apiFetch } from "@/lib/api/apiFetch";
-import type { ApiResponse } from "../../../../../server/src/types/api";
-import type { Plan, PlanCreateInput, PlanUpdateInput } from "../../../../../server/src/domain/entities/plan";
-import type { IPageableResult } from "../../../../../server/src/application/common/pagination";
+import type { Plan, PlanCreateInput, PlanUpdateInput } from "@/entities/plan";
+import type { IPageableResult } from "../../../../server/src/application/common/pagination";
+import type { ApiResponse } from "../../../../server/src/types/api";
+import { apiFetch } from "../../lib/api/api-fetch";
 
 export const getPlans = async (params: {
   page: number;
   pageSize: number;
-  filters?: { search?: string, isActive?: boolean };
+  filters?: { search?: string; isActive?: boolean };
 }) => {
   const queryParams = new URLSearchParams({
     page: params.page.toString(),
@@ -16,9 +16,9 @@ export const getPlans = async (params: {
   if (params.filters?.search) {
     queryParams.append("search", params.filters.search);
   }
-  
+
   if (params.filters?.isActive !== undefined) {
-      queryParams.append("isActive", params.filters.isActive.toString());
+    queryParams.append("isActive", params.filters.isActive.toString());
   }
 
   return apiFetch<ApiResponse<IPageableResult<Plan>>>(
@@ -33,9 +33,6 @@ export const getPlan = async (id: string) => {
 export const createPlan = async (data: PlanCreateInput) => {
   return apiFetch<ApiResponse<Plan>>("/plans", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };
@@ -49,9 +46,6 @@ export const updatePlan = async ({
 }) => {
   return apiFetch<ApiResponse<Plan>>(`/plans/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };

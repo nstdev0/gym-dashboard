@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createUser, deleteUser, updateUser } from "./requests";
+import { toast } from "sonner";
 
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
@@ -7,10 +8,8 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: createUser,
     onSuccess: () => {
+      toast.success("Usuario creado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };
@@ -21,11 +20,9 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: updateUser,
     onSuccess: () => {
+      toast.success("Usuario actualizado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };
@@ -36,10 +33,8 @@ export const useDeleteUser = () => {
   return useMutation({
     mutationFn: (variables: { id: string }) => deleteUser(variables.id),
     onSuccess: () => {
+      toast.success("Usuario eliminado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };

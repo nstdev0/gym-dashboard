@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/apiFetch";
+import { apiFetch } from "@/lib/api/api-fetch";
 import { Button } from "@/components/ui/button";
 import {
   Field,

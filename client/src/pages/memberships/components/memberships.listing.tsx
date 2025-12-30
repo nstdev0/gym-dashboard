@@ -2,7 +2,6 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
-// UI Components
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +23,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Icons
 import {
   Search,
   MoreHorizontal,
@@ -33,10 +31,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
-  Eye, // Icon for Memberships
+  Eye,
 } from "lucide-react";
 
-// Logic & Types
 import { useDeleteMembership } from "@/features/memberships/mutations";
 import { getMemberships } from "@/features/memberships/requests";
 import type { Membership } from "../../../../../server/src/domain/entities/membership";
@@ -48,12 +45,10 @@ export default function MembershipsListingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Params
   const CURRENT_PAGE = parseInt(searchParams.get("page") || "1");
   const PAGE_SIZE = parseInt(searchParams.get("pageSize") || "10");
   const search = searchParams.get("search") || "";
 
-  // React Query
   const request = {
     filters: { search },
     page: CURRENT_PAGE,
@@ -70,13 +65,11 @@ export default function MembershipsListingPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Derived State
   const result = response?.data;
   const records = result?.records ?? [];
   const totalRecords = result?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  // Handlers
   const handleSearch = (term: string) => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -95,7 +88,8 @@ export default function MembershipsListingPage() {
     });
   };
 
-  const { mutate: deleteMembership, isPending: isDeleting } = useDeleteMembership();
+  const { mutate: deleteMembership, isPending: isDeleting } =
+    useDeleteMembership();
 
   const handleDelete = (id: string) => {
     if (confirm("¿Estás seguro de eliminar esta membresía?")) {
@@ -148,7 +142,8 @@ export default function MembershipsListingPage() {
                 No se encontraron membresías
               </h3>
               <p className="text-sm max-w-xs mx-auto mt-1">
-                No hay resultados para tu búsqueda o aún no has registrado membresías.
+                No hay resultados para tu búsqueda o aún no has registrado
+                membresías.
               </p>
               {search && (
                 <Button
@@ -174,99 +169,121 @@ export default function MembershipsListingPage() {
               </TableHeader>
               <TableBody>
                 {records.map((membership, index) => {
-                    // Safe access in case relation is not populated or null
-                    const memberName = membership.member 
-                        ? `${membership.member.firstName} ${membership.member.lastName}`
-                        : "Desconocido";
-                    
-                    const planName = membership.plan?.name || "Sin Plan";
-                    
-                    return (
-                        <TableRow
-                          key={membership.id}
-                          className="hover:bg-muted/5 group"
+                  const memberName = membership.member
+                    ? `${membership.member.firstName} ${membership.member.lastName}`
+                    : "Desconocido";
+
+                  const planName = membership.plan?.name || "Sin Plan";
+
+                  return (
+                    <TableRow
+                      key={membership.id}
+                      className="hover:bg-muted/5 group"
+                    >
+                      <TableCell className="text-center text-muted-foreground text-xs">
+                        {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">
+                            {memberName}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {membership.member?.docNumber}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="font-normal text-xs"
                         >
-                          <TableCell className="text-center text-muted-foreground text-xs">
-                            {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
-                          </TableCell>
+                          {planName}
+                        </Badge>
+                      </TableCell>
 
-                          <TableCell>
-                            <div className="flex flex-col">
-                                <span className="font-medium text-sm">
-                                    {memberName}
-                                </span>
-                                <span className="text-[10px] text-muted-foreground">
-                                    {membership.member?.docNumber}
-                                </span>
-                            </div>
-                          </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col text-xs">
+                          <span className="text-muted-foreground">
+                            Inicio:{" "}
+                            <span className="text-foreground">
+                              {format(
+                                new Date(membership.startDate),
+                                "dd/MM/yyyy"
+                              )}
+                            </span>
+                          </span>
+                          <span className="text-muted-foreground">
+                            Fin:{" "}
+                            <span className="text-foreground">
+                              {format(
+                                new Date(membership.endDate),
+                                "dd/MM/yyyy"
+                              )}
+                            </span>
+                          </span>
+                        </div>
+                      </TableCell>
 
-                          <TableCell>
-                             <Badge variant="outline" className="font-normal text-xs">
-                                {planName}
-                             </Badge>
-                          </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            membership.status === "ACTIVE"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={`text-[10px] px-2 py-0.5 ${
+                            membership.status === "ACTIVE"
+                              ? "bg-green-600 hover:bg-green-700"
+                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                          }`}
+                        >
+                          {membership.status === "ACTIVE"
+                            ? "ACTIVO"
+                            : "INACTIVO"}
+                        </Badge>
+                      </TableCell>
 
-                          <TableCell>
-                            <div className="flex flex-col text-xs">
-                                <span className="text-muted-foreground">
-                                    Inicio: <span className="text-foreground">{format(new Date(membership.startDate), "dd/MM/yyyy")}</span>
-                                </span>
-                                <span className="text-muted-foreground">
-                                    Fin: <span className="text-foreground">{format(new Date(membership.endDate), "dd/MM/yyyy")}</span>
-                                </span>
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <Badge
-                              variant={membership.status === "ACTIVE" ? "default" : "secondary"}
-                              className={`text-[10px] px-2 py-0.5 ${
-                                membership.status === "ACTIVE"
-                                  ? "bg-green-600 hover:bg-green-700"
-                                  : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                              }`}
+                      <TableCell className="text-right pr-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              {membership.status === "ACTIVE" ? "ACTIVO" : "INACTIVO"}
-                            </Badge>
-                          </TableCell>
-
-                          <TableCell className="text-right pr-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <span className="sr-only">Abrir menú</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() => navigate(`${membership.id}`)}
-                                >
-                                  <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => navigate(`${membership.id}/editar`)}
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" /> Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => handleDelete(membership.id)}
-                                  disabled={isDeleting}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                    )
+                              <span className="sr-only">Abrir menú</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => navigate(`${membership.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" /> Ver detalle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(`${membership.id}/editar`)
+                              }
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(membership.id)}
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
                 })}
               </TableBody>
             </Table>
@@ -304,7 +321,6 @@ export default function MembershipsListingPage() {
   );
 }
 
-// SKELETON LOADER COMPONENT
 function MembershipsTableSkeleton() {
   return (
     <div className="p-4">

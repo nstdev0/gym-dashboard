@@ -1,5 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { Toaster } from "sonner";
+import { useTheme } from "./components/ThemeProvider";
 import DashboardPage from "./pages/dashboard/page";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 import Layout from "./components/ui/Layout";
@@ -41,8 +43,11 @@ const UnauthorizedPage = lazy(() => import("./pages/auth/unauthorized/page"));
 const NotFoundPage = lazy(() => import("./pages/not-found/page"));
 
 function App() {
+  const { theme } = useTheme();
+
   return (
     <div>
+      <Toaster richColors theme={theme as "light" | "dark" | "system"} />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           {/* PUBLIC ROUTES */}

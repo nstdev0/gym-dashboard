@@ -1,19 +1,22 @@
-import type { Member, MemberCreateInput, MemberUpdateInput } from "@/entities/member";
+import type {
+  Member,
+  MemberCreateInput,
+  MemberUpdateInput,
+} from "@/entities/member";
 import { type ApiResponse } from "../../../../server/src/types/api";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
-import { apiFetch } from "../../lib/api/apiFetch";
+import { apiFetch } from "../../lib/api/api-fetch";
 
 export async function getMembers(request: {
+  page?: number;
+  pageSize?: number;
   filters?: Record<string, unknown>;
-  page: number;
-  pageSize: number;
 }): Promise<ApiResponse<IPageableResult<Member>>> {
   const params = new URLSearchParams();
-  params.append("page", request.page.toString() || "1");
-  params.append("pageSize", request.pageSize.toString() || "10");
-  if (request.filters?.search) {
+  if (request.page) params.append("page", request.page.toString());
+  if (request.pageSize) params.append("pageSize", request.pageSize.toString());
+  if (request.filters?.search)
     params.append("search", request.filters.search as string);
-  }
   const response: ApiResponse<IPageableResult<Member>> = await apiFetch(
     `/members?${params.toString()}`
   );

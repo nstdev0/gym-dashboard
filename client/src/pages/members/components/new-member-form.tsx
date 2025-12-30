@@ -41,7 +41,6 @@ import {
 export default function NewMemberForm() {
   const navigate = useNavigate();
 
-  // Solución del error de tipado: Quitamos el genérico explícito
   const {
     register,
     handleSubmit,
@@ -72,8 +71,6 @@ export default function NewMemberForm() {
   };
 
   return (
-    // CAMBIO: max-w-6xl para que sea más ancho y quepa todo lado a lado
-    // CAMBIO: Reducción de márgenes y bordes
     <Card className="mx-auto w-full max-w-6xl border-border/60 shadow-md">
       {/* HEADER COMPACTO: py-4 en lugar de pb-8 */}
       <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
@@ -292,7 +289,9 @@ export default function NewMemberForm() {
                       <Input
                         className="pl-9 h-9 text-sm"
                         type="tel"
-                        {...register("phoneNumber")}
+                        {...register("phoneNumber", {
+                          setValueAs: (v) => (v === "" ? null : v),
+                        })}
                         placeholder="999 999 999"
                       />
                     </div>
@@ -308,7 +307,9 @@ export default function NewMemberForm() {
                       <Input
                         className="pl-9 h-9 text-sm"
                         type="email"
-                        {...register("email")}
+                        {...register("email", {
+                          setValueAs: (v) => (v === "" ? null : v),
+                        })}
                         placeholder="correo@ejemplo.com"
                       />
                     </div>
@@ -332,7 +333,7 @@ export default function NewMemberForm() {
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className="scale-90" // Switch un poco más pequeño
+                      className="scale-90"
                     />
                   )}
                 />

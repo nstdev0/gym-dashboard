@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/ui/FormError";
-import { Textarea } from "@/components/ui/textarea"; // Assuming Textarea exists
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,20 +32,23 @@ import {
   Undo2,
   DollarSign,
   Clock,
-  FileText
+  FileText,
 } from "lucide-react";
 
 export default function EditPlanForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // Fetch plan data
-  const { data: response, isLoading, isError } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["plan", id],
     queryFn: () => getPlan(id!),
     enabled: !!id,
   });
-  
+
   const plan = response?.data;
 
   const {
@@ -65,7 +68,6 @@ export default function EditPlanForm() {
     },
   });
 
-  // Populate form when data is loaded
   useEffect(() => {
     if (plan) {
       reset({
@@ -93,7 +95,8 @@ export default function EditPlanForm() {
   };
 
   if (isLoading) return <EditPlanSkeleton />;
-  if (isError) return <div className="text-destructive">Error al cargar el plan</div>;
+  if (isError)
+    return <div className="text-destructive">Error al cargar el plan</div>;
 
   return (
     <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
@@ -113,7 +116,6 @@ export default function EditPlanForm() {
 
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
           {/* Nombre y Precio */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -151,7 +153,7 @@ export default function EditPlanForm() {
 
           {/* Duración y Estado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="durationInDays" className="text-xs">
                 Duración (Días) <span className="text-destructive">*</span>
               </Label>
@@ -168,35 +170,38 @@ export default function EditPlanForm() {
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
-                <div className="space-y-0.5">
-                  <Label className="text-sm">Plan Activo</Label>
-                  <p className="text-[10px] text-muted-foreground">
-                    Visible para nuevas suscripciones.
-                  </p>
-                </div>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="scale-90"
-                    />
-                  )}
-                />
+              <div className="space-y-0.5">
+                <Label className="text-sm">Plan Activo</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Visible para nuevas suscripciones.
+                </p>
+              </div>
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="scale-90"
+                  />
+                )}
+              />
             </div>
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-xs">
-              Descripción <span className="text-muted-foreground">(Opcional)</span>
+              Descripción{" "}
+              <span className="text-muted-foreground">(Opcional)</span>
             </Label>
             <Textarea
               className="resize-none text-sm"
               rows={3}
-              {...register("description")}
+              {...register("description", {
+                setValueAs: (v) => (v === "" ? null : v),
+              })}
               placeholder="Detalles adicionales del plan..."
             />
             <ErrorMessage message={errors.description?.message} />
@@ -238,26 +243,26 @@ export default function EditPlanForm() {
 
 function EditPlanSkeleton() {
   return (
-     <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
+    <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
       <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-64 mt-2" />
       </CardHeader>
       <CardContent className="p-6 space-y-6">
         <div className="grid grid-cols-2 gap-6">
-           <Skeleton className="h-12 w-full" />
-           <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
         <div className="grid grid-cols-2 gap-6">
-           <Skeleton className="h-12 w-full" />
-           <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
         <Skeleton className="h-24 w-full" />
         <div className="flex justify-end gap-3">
-             <Skeleton className="h-10 w-24" />
-             <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-32" />
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createPlan, deletePlan, updatePlan } from "./requests";
-// import { toast } from "sonner" // Or your toast library
+import { toast } from "sonner";
 
 export const useCreatePlan = () => {
   const queryClient = useQueryClient();
@@ -8,12 +8,8 @@ export const useCreatePlan = () => {
   return useMutation({
     mutationFn: createPlan,
     onSuccess: () => {
-      // toast.success("Plan creado exitosamente")
+      toast.success("Plan registrado");
       queryClient.invalidateQueries({ queryKey: ["plans"] });
-    },
-    onError: (error) => {
-      // toast.error("Error al crear el plan")
-      console.error(error);
     },
   });
 };
@@ -24,13 +20,9 @@ export const useUpdatePlan = () => {
   return useMutation({
     mutationFn: updatePlan,
     onSuccess: () => {
-        // toast.success("Plan actualizado exitosamente")
+      toast.success("Plan actualizado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["plans"] });
       queryClient.invalidateQueries({ queryKey: ["plan"] });
-    },
-    onError: (error) => {
-        // toast.error("Error al actualizar el plan")
-      console.error(error);
     },
   });
 };
@@ -41,12 +33,8 @@ export const useDeletePlan = () => {
   return useMutation({
     mutationFn: (variables: { id: string }) => deletePlan(variables.id),
     onSuccess: () => {
-        // toast.success("Plan eliminado exitosamente")
+      toast.success("Plan eliminado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["plans"] });
-    },
-    onError: (error) => {
-        // toast.error("Error al eliminar el plan")
-      console.error(error);
     },
   });
 };

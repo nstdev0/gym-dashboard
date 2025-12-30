@@ -8,18 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { getUser } from "@/features/users/requests";
 import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   Mail,
-  User,
   Shield,
   AlertCircle,
   CheckCircle2,
   XCircle,
-  Hash
+  Hash,
 } from "lucide-react";
 
 const formatDate = (date?: Date | string | null) => {
@@ -40,7 +38,7 @@ export default function UserDetail({ id }: { id: string }) {
     queryFn: () => getUser(id),
     queryKey: ["user", id],
   });
-  
+
   const user = response?.data;
 
   if (isLoading) return <UserDetailSkeleton />;
@@ -56,8 +54,9 @@ export default function UserDetail({ id }: { id: string }) {
     );
   }
 
-  // Get initials
-  const initials = `${user.firstName.charAt(0)}${user.lastName ? user.lastName.charAt(0) : ""}`.toUpperCase();
+  const initials = `${user.firstName.charAt(0)}${
+    user.lastName ? user.lastName.charAt(0) : ""
+  }`.toUpperCase();
 
   return (
     <div className="w-full space-y-6">
@@ -66,7 +65,7 @@ export default function UserDetail({ id }: { id: string }) {
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div className="flex items-start gap-4">
               <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full text-xl font-bold">
-                 {initials}
+                {initials}
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold">
@@ -88,14 +87,21 @@ export default function UserDetail({ id }: { id: string }) {
                 }
               >
                 {user.isActive ? (
-                   <><CheckCircle2 className="w-3 h-3 mr-1"/> ACTIVO</>
+                  <>
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVO
+                  </>
                 ) : (
-                   <><XCircle className="w-3 h-3 mr-1"/> INACTIVO</>
+                  <>
+                    <XCircle className="w-3 h-3 mr-1" /> INACTIVO
+                  </>
                 )}
               </Badge>
-              <Badge variant="outline" className="border-primary/50 text-primary bg-primary/5 uppercase">
-                  <Shield className="w-3 h-3 mr-1" />
-                  {user.role}
+              <Badge
+                variant="outline"
+                className="border-primary/50 text-primary bg-primary/5 uppercase"
+              >
+                <Shield className="w-3 h-3 mr-1" />
+                {user.role}
               </Badge>
             </div>
           </div>
@@ -113,7 +119,7 @@ export default function UserDetail({ id }: { id: string }) {
               label="Fecha Registro"
               value={formatDate(user.createdAt)}
             />
-             <InfoItem
+            <InfoItem
               icon={<Hash className="h-4 w-4" />}
               label="ID Sistema"
               value={<span className="font-mono text-xs">{user.id}</span>}
@@ -122,7 +128,7 @@ export default function UserDetail({ id }: { id: string }) {
         </CardContent>
 
         <CardFooter className="bg-muted/10 border-t py-4 text-xs text-muted-foreground flex justify-between items-center">
-             <span>Última actualización: {formatDate(user.updatedAt)}</span>
+          <span>Última actualización: {formatDate(user.updatedAt)}</span>
         </CardFooter>
       </Card>
     </div>
@@ -164,8 +170,8 @@ function UserDetailSkeleton() {
             </div>
           </div>
           <div className="flex gap-2">
-             <Skeleton className="h-6 w-20 rounded-full" />
-             <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-6 w-20 rounded-full" />
           </div>
         </div>
       </CardHeader>

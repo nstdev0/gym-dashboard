@@ -6,10 +6,10 @@ import { PaymentMethodEnum } from "../../../../server/src/domain/enums/payment-m
 // BASE SHAPE
 // ---------------------------------------------------------
 const invoiceBaseShape = z.object({
-  memberId: z.string().cuid("ID de miembro requerido"),
+  memberId: z.cuid2("ID de miembro requerido"),
 
-  // Opcional porque puedes vender productos sueltos sin membresía
-  membershipId: z.string().cuid().optional().nullable(),
+  // Opcional porque no siempre se venden membresías
+  membershipId: z.cuid2().optional().nullable(),
 
   amount: z.coerce
     .number("Monto requerido")
@@ -27,7 +27,7 @@ const invoiceBaseShape = z.object({
   paidAt: z.coerce.date().optional().nullable(),
 
   // IDs de staff (normalmente se inyectan en backend, pero el form puede requerirlo)
-  issuedBy: z.string().cuid().optional(),
+  issuedBy: z.cuid2().optional(),
 });
 
 // ---------------------------------------------------------
@@ -35,13 +35,13 @@ const invoiceBaseShape = z.object({
 // ---------------------------------------------------------
 
 export const invoiceSchema = invoiceBaseShape.extend({
-  id: z.string().cuid(),
+  id: z.cuid2(),
   serialNumber: z.string().nullable(), // Backend lo genera
   amount: z.number().or(z.string()), // Salida Decimal
   createdAt: z.date(),
   updatedAt: z.date(),
   // issuedBy es obligatorio en la BD, aquí lo forzamos en la salida
-  issuedBy: z.string().cuid(),
+  issuedBy: z.cuid2(),
 });
 export type Invoice = z.infer<typeof invoiceSchema>;
 

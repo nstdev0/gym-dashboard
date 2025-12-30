@@ -4,24 +4,31 @@ import {
   MembershipUpdateInput,
 } from "../../../domain/entities/membership";
 import { IPageableResult } from "../../common/pagination";
-import { IMembershipRepository, MembershipsFilters } from "../../repositories/memberships-repository.interface";
+import {
+  IMembershipRepository,
+  MembershipsFilters,
+} from "../../repositories/memberships-repository.interface";
+import { NotFoundError } from "../../../domain/errors/not-found-error";
 
 export class MembershipsService {
   constructor(private membershipsRepository: IMembershipRepository) {}
 
   findAll = async (request: {
-    page: number;
-    pageSize: number;
+    page?: number;
+    pageSize?: number;
     filters?: MembershipsFilters;
   }): Promise<IPageableResult<Membership>> => {
     const includes = {
-        member: true,
-        plan: true
+      member: true,
+      plan: true,
     };
     try {
-      const response = await this.membershipsRepository.findAll(request, includes);
+      const response = await this.membershipsRepository.findAll(
+        request,
+        includes
+      );
       if (!response) {
-        throw new Error("No memberships found");
+        throw new NotFoundError("No memberships found");
       }
       return response;
     } catch (error) {
@@ -30,15 +37,13 @@ export class MembershipsService {
   };
 
   create = async (data: MembershipCreateInput): Promise<Membership> => {
-    // Logic for active memberships check could go here
-    // For now simple create
     return await this.membershipsRepository.create(data);
   };
 
   findById = async (id: string): Promise<Membership | null> => {
     const includes = {
-        member: true,
-        plan: true
+      member: true,
+      plan: true,
     };
     return await this.membershipsRepository.findById(id, includes);
   };

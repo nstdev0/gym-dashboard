@@ -78,7 +78,7 @@ export default function EditMemberForm({ id }: { id: string }) {
       height: null,
       weight: null,
       phoneNumber: "",
-      email: "",
+      email: null,
       isActive: true,
     },
   });
@@ -89,6 +89,7 @@ export default function EditMemberForm({ id }: { id: string }) {
       reset({
         ...member,
         // Formatear fecha para input type="date" (YYYY-MM-DD)
+        gender: member.gender,
         birthDate: member.birthDate
           ? new Date(member.birthDate).toISOString().split("T")[0]
           : "",
@@ -356,7 +357,9 @@ export default function EditMemberForm({ id }: { id: string }) {
                       <Input
                         className="pl-9 h-9 text-sm"
                         type="tel"
-                        {...register("phoneNumber")}
+                        {...register("phoneNumber", {
+                          setValueAs: (v) => (v === "" ? null : v),
+                        })}
                       />
                     </div>
                     <ErrorMessage message={errors.phoneNumber?.message} />
@@ -371,7 +374,9 @@ export default function EditMemberForm({ id }: { id: string }) {
                       <Input
                         className="pl-9 h-9 text-sm"
                         type="email"
-                        {...register("email")}
+                        {...register("email", {
+                          setValueAs: (v) => (v === "" ? null : v),
+                        })}
                       />
                     </div>
                     <ErrorMessage message={errors.email?.message} />
@@ -451,7 +456,6 @@ export default function EditMemberForm({ id }: { id: string }) {
   );
 }
 
-// Skeleton para evitar saltos de layout mientras carga
 function EditMemberSkeleton() {
   return (
     <Card className="mx-auto w-full max-w-6xl border-border/60">

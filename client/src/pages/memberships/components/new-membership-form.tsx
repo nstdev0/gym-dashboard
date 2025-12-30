@@ -39,7 +39,7 @@ export default function NewMembershipForm() {
 
   const { data: membersResponse } = useQuery({
     queryKey: ["members", "all"],
-    queryFn: () => getMembers({ page: 1, pageSize: 10 }),
+    queryFn: () => getMembers({ page: 1, pageSize: 1000 }),
   });
   const members = membersResponse?.data?.records ?? [];
 
@@ -93,72 +93,79 @@ export default function NewMembershipForm() {
 
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
           {/* Selección de Miembro y Plan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-               <Label className="text-xs">Miembro <span className="text-destructive">*</span></Label>
-               <Controller
-                  control={control}
-                  name="memberId"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                       <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Seleccionar miembro" />
-                       </SelectTrigger>
-                       <SelectContent>
-                          {members.map(member => (
-                              <SelectItem key={member.id} value={member.id}>
-                                  {member.firstName} {member.lastName}
-                              </SelectItem>
-                          ))}
-                       </SelectContent>
-                    </Select>
-                  )}
-               />
-               <ErrorMessage message={errors.memberId?.message} />
+              <Label className="text-xs">
+                Miembro <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="memberId"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Seleccionar miembro" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {members.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.firstName} {member.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <ErrorMessage message={errors.memberId?.message} />
             </div>
 
             <div className="space-y-2">
-               <Label className="text-xs">Plan <span className="text-destructive">*</span></Label>
-               <Controller
-                  control={control}
-                  name="planId"
-                  render={({ field }) => (
-                    <Select onValueChange={(val) => {
-                        field.onChange(val);
-                        // Auto-fill logic
-                        const selectedPlan = plans.find(plan => plan.id === val);
-                        if(selectedPlan) {
-                           // 1. Set Price
-                           setValue("price", Number(selectedPlan.price));
-                           
-                           // 2. Set Start Date to Today
-                           const today = new Date();
-                           const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
-                           setValue("startDate", todayStr);
+              <Label className="text-xs">
+                Plan <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="planId"
+                render={({ field }) => (
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      const selectedPlan = plans.find(
+                        (plan) => plan.id === val
+                      );
+                      if (selectedPlan) {
+                        setValue("price", Number(selectedPlan.price));
 
-                           // 3. Set End Date (Today + Duration)
-                           const endDate = new Date(today);
-                           endDate.setDate(today.getDate() + selectedPlan.durationInDays);
-                           const endDateStr = endDate.toISOString().split("T")[0];
-                           setValue("endDate", endDateStr);
-                        }
-                    }} value={field.value}>
-                       <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Seleccionar plan" />
-                       </SelectTrigger>
-                       <SelectContent>
-                          {plans.map(plan => (
-                              <SelectItem key={plan.id} value={plan.id}>
-                                  {plan.name} - S/ {Number(plan.price).toFixed(2)} ({plan.durationInDays} días)
-                              </SelectItem>
-                          ))}
-                       </SelectContent>
-                    </Select>
-                  )}
-               />
-               <ErrorMessage message={errors.planId?.message} />
+                        const today = new Date();
+                        const todayStr = today.toISOString().split("T")[0];
+                        setValue("startDate", todayStr);
+
+                        const endDate = new Date(today);
+                        endDate.setDate(
+                          today.getDate() + selectedPlan.durationInDays
+                        );
+                        const endDateStr = endDate.toISOString().split("T")[0];
+                        setValue("endDate", endDateStr);
+                      }
+                    }}
+                    value={field.value}
+                  >
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Seleccionar plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} - S/ {Number(plan.price).toFixed(2)} (
+                          {plan.durationInDays} días)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <ErrorMessage message={errors.planId?.message} />
             </div>
           </div>
 
@@ -167,66 +174,74 @@ export default function NewMembershipForm() {
           {/* Fechas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-               <Label htmlFor="startDate" className="text-xs">Fecha Inicio <span className="text-destructive">*</span></Label>
-               <div className="relative">
-                  <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                      className="h-9 pl-9 text-sm" 
-                      type="date"
-                      {...register("startDate")}
-                  />
-               </div>
-               <ErrorMessage message={errors.startDate?.message} />
+              <Label htmlFor="startDate" className="text-xs">
+                Fecha Inicio <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-9 text-sm"
+                  type="date"
+                  {...register("startDate")}
+                />
+              </div>
+              <ErrorMessage message={errors.startDate?.message} />
             </div>
 
             <div className="space-y-2">
-               <Label htmlFor="endDate" className="text-xs">Fecha Fin <span className="text-destructive">*</span></Label>
-               <div className="relative">
-                  <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                      className="h-9 pl-9 text-sm" 
-                      type="date"
-                      {...register("endDate")}
-                  />
-               </div>
-               <ErrorMessage message={errors.endDate?.message} />
+              <Label htmlFor="endDate" className="text-xs">
+                Fecha Fin <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-9 text-sm"
+                  type="date"
+                  {...register("endDate")}
+                />
+              </div>
+              <ErrorMessage message={errors.endDate?.message} />
             </div>
           </div>
 
           {/* Precio y Estado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-2">
-                <Label htmlFor="price" className="text-xs">Precio Final (PEN) <span className="text-destructive">*</span></Label>
-                <div className="relative">
-                   <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                   <Input 
-                      className="h-9 pl-9 text-sm" 
-                      type="number" 
-                      step="0.01"
-                      {...register("price", { valueAsNumber: true })}
-                   />
-                </div>
-                <ErrorMessage message={errors.price?.message} />
-             </div>
-
-             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
-                <div className="space-y-0.5">
-                  <Label className="text-sm">Estado Activo</Label>
-                  <p className="text-[10px] text-muted-foreground">
-                    Membresía vigente.
-                  </p>
-                </div>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value === "ACTIVE"}
-                      onCheckedChange={(checked) => field.onChange(checked ? "ACTIVE" : "INACTIVE")}
-                      className="scale-90"
-                    />
-                  )}
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-xs">
+                Precio Final (PEN) <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-9 text-sm"
+                  type="number"
+                  step="0.01"
+                  {...register("price", { valueAsNumber: true })}
                 />
+              </div>
+              <ErrorMessage message={errors.price?.message} />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Estado Activo</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Membresía vigente.
+                </p>
+              </div>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value === "ACTIVE"}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked ? "ACTIVE" : "INACTIVE")
+                    }
+                    className="scale-90"
+                  />
+                )}
+              />
             </div>
           </div>
 

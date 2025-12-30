@@ -30,7 +30,7 @@ const planBaseShape = z.object({
 // ---------------------------------------------------------
 
 export const planSchema = planBaseShape.extend({
-  id: z.string().cuid(),
+  id: z.cuid2(),
   // Override de price para salida: Prisma Decimal suele serializarse a string en APIs
   price: z.number().or(z.string()),
   createdAt: z.date(),

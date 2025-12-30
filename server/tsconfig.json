@@ -1,5 +1,15 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@entities/*": ["./src/domain/entities/*"],
+      "@common/*": ["./src/application/common/*"],
+      "@use-cases/*": ["./src/application/use-cases/*"],
+      "@interface-adapters/*": ["./src/interface-adapters/*"],
+      "@lib/*": ["./src/lib/*"]
+    },
+    "outDir": "./dist",
     "module": "ESNext",
     "moduleResolution": "node",
     "target": "ES2023",

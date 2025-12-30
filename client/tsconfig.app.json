@@ -12,13 +12,14 @@
       "@/*": [
         "./src/*"
       ],
-      "@/entities/*": [
+      "@server/entities/*": [
         "../server/src/domain/entities/*"
       ],
-      "@/enums/*": [
+      "@server/enums/*": [
         "../server/src/domain/enums/*"
       ],
-      "@/lib/*": [
+      "@server/lib/*": [
+        "./src/lib/*",
         "../server/src/lib/*"
       ]
     },

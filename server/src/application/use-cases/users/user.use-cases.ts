@@ -8,21 +8,24 @@ import {
   IUsersRepository,
   UsersFilters,
 } from "../../repositories/users-repository.interface";
+import bcrypt from "bcrypt";
+import { NotFoundError } from "../../../domain/errors/not-found-error";
+import { AppError } from "../../../domain/errors/app-error";
 
-// import bcrypt from "bcrypt"; // Should be injected or util
+const salt = await bcrypt.genSalt(10);
 
 export class UsersService {
   constructor(private usersRepository: IUsersRepository) {}
 
   findAll = async (request: {
-    page: number;
-    pageSize: number;
+    page?: number | undefined;
+    pageSize?: number | undefined;
     filters?: UsersFilters;
   }): Promise<IPageableResult<User>> => {
     try {
       const response = await this.usersRepository.findAll(request);
       if (!response) {
-        throw new Error("No users found");
+        throw new NotFoundError("No users found");
       }
       return response;
     } catch (error) {
@@ -31,18 +34,22 @@ export class UsersService {
   };
 
   create = async (data: UserCreateInput): Promise<User> => {
-    const existingUser = await this.usersRepository.findByEmail(data.email);
+    const existingEmail = await this.usersRepository.findUnique({
+      email: data.email,
+    });
 
-    if (existingUser) {
-      throw new Error(`Ya existe un usuario con el email: ${data.email}`);
+    if (existingEmail) {
+      throw new AppError(
+        `Ya existe un usuario con el email: ${data.email}`,
+        409,
+        "USER_ALREADY_EXISTS"
+      );
     }
 
-    // TODO: Hash password here if not handled elsewhere or by middleware
-    // const hashedPassword = await bcrypt.hash(data.password, 10);
-    // const userData = { ...data, password: hashedPassword };
-    
-    // For now assuming direct pass or handled lower
-    return await this.usersRepository.create(data);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const userData = { ...data, password: hashedPassword };
+
+    return await this.usersRepository.create(userData);
   };
 
   findById = async (id: string): Promise<User | null> => {
@@ -50,7 +57,38 @@ export class UsersService {
   };
 
   update = async (id: string, data: UserUpdateInput): Promise<User | null> => {
-     // Optional: Check email uniqueness if email is changed
+    if (data.email) {
+      const existingEmail = await this.usersRepository.findUnique({
+        email: data.email,
+      });
+
+      if (existingEmail && existingEmail.id !== id) {
+        throw new AppError(
+          "El email ya está en uso por otro usuario.",
+          409,
+          "USER_ALREADY_EXISTS"
+        );
+      }
+    }
+
+    if (data.username) {
+      const existingUsername = await this.usersRepository.findUnique({
+        username: data.username,
+      });
+
+      if (existingUsername && existingUsername.id !== id) {
+        throw new AppError(
+          "El nombre de usuario ya está en uso.",
+          409,
+          "USER_ALREADY_EXISTS"
+        );
+      }
+    }
+
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, salt);
+    }
+
     return await this.usersRepository.update(id, data);
   };
 

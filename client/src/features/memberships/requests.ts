@@ -1,6 +1,10 @@
-import { apiFetch } from "../../lib/api/apiFetch";
+import { apiFetch } from "../../lib/api/api-fetch";
 import type { ApiResponse } from "../../../../server/src/types/api";
-import type { Membership, MembershipCreateInput, MembershipUpdateInput } from "../../../../server/src/domain/entities/membership";
+import type {
+  Membership,
+  MembershipCreateInput,
+  MembershipUpdateInput,
+} from "../../../../server/src/domain/entities/membership";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
 
 export const getMemberships = async (params: {
@@ -15,19 +19,23 @@ export const getMemberships = async (params: {
   if (params.filters?.search) {
     queryParams.append("search", params.filters.search);
   }
-  const response: ApiResponse<IPageableResult<Membership>> = await apiFetch<ApiResponse<IPageableResult<Membership>>>(
-    `/memberships?${queryParams.toString()}`
-  );
+  const response: ApiResponse<IPageableResult<Membership>> = await apiFetch<
+    ApiResponse<IPageableResult<Membership>>
+  >(`/memberships?${queryParams.toString()}`);
   return response;
 };
 
 export const getMembership = async ({ id }: { id: string }) => {
-  const { data }: ApiResponse<Membership> = await apiFetch<ApiResponse<Membership>>(`/memberships/${id}`);
+  const { data }: ApiResponse<Membership> = await apiFetch<
+    ApiResponse<Membership>
+  >(`/memberships/${id}`);
   return data;
 };
 
 export const createMembership = async (data: MembershipCreateInput) => {
-  const response: ApiResponse<Membership> = await apiFetch<ApiResponse<Membership>>("/memberships", {
+  const response: ApiResponse<Membership> = await apiFetch<
+    ApiResponse<Membership>
+  >("/memberships", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -43,9 +51,6 @@ export const updateMembership = async ({
 }) => {
   return apiFetch<ApiResponse<Membership>>(`/memberships/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };

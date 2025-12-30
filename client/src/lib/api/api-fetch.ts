@@ -1,4 +1,5 @@
 import { config } from "../../config/config";
+import { ApiError } from "./api-error";
 
 const BASE_API_URL = config.BASE_API_URL || "http://localhost:4000/api";
 
@@ -16,22 +17,22 @@ export async function apiFetch<T>(
       ...(init.headers || {}),
     },
   });
-  if (!response.ok) {
-    let errorMessage = `API request failed with status ${response.status}`;
-    try {
-      const errorData = await response.json();
-      if (errorData.message) {
-        errorMessage = errorData.message;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw new Error(
-        "An unknown error occurred while processing the API response."
-      );
-    }
-    throw new Error(errorMessage);
+
+  // Manejo de respuesta vacía
+  if (response.status === 204) {
+    return {} as T;
   }
-  return response.json();
+
+  const data = await response.json().catch(() => ({}));
+
+  // Si la respuesta no es OK (Status 4xx o 5xx)
+  if (!response.ok) {
+    const errorMessage = data?.message || "Ocurrió un error inesperado";
+    const errorDetails = data?.errors || undefined;
+    const errorCode = data?.code || undefined;
+
+    throw new ApiError(errorMessage, response.status, errorDetails, errorCode);
+  }
+
+  return data as T;
 }

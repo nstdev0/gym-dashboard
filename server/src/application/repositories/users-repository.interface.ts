@@ -6,7 +6,4 @@ export type UsersFilters = {
   role?: string | null;
 };
 
-export interface IUsersRepository
-  extends IBaseRepository<User, UsersFilters> {
-  findByEmail(email: string): Promise<User | null>;
-}
+export interface IUsersRepository extends IBaseRepository<User, UsersFilters> {}

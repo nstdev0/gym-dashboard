@@ -1,18 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMember, deleteMember, updateMember } from "./requests";
-import type { MemberInsert } from "@/entities/member";
+import type { MemberCreateInput, MemberUpdateInput } from "@/entities/member";
+import { toast } from "sonner";
 
 export const useCreateMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: MemberInsert) => createMember(data),
+    mutationFn: (data: MemberCreateInput) => createMember(data),
     onSuccess: () => {
+      toast.success("Miembro creado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: (error) => {
-      console.error(error);
-      alert("Error al crear miembro");
     },
   });
 };
@@ -21,14 +19,11 @@ export const useUpdateMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: MemberInsert }) =>
+    mutationFn: ({ id, data }: { id: string; data: MemberUpdateInput }) =>
       updateMember(id, data),
     onSuccess: () => {
+      toast.success("Miembro actualizado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: (error) => {
-      console.error(error);
-      alert("Error al actualizar miembro");
     },
   });
 };
@@ -39,54 +34,8 @@ export const useDeleteMember = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteMember(id),
     onSuccess: () => {
+      toast.success("Miembro eliminado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: (error) => {
-      console.error(error);
-      alert("Error al eliminar");
     },
   });
 };
-
-// import { useMutation, useQueryClient } from "@tanstack/react-query";
-// import { toast } from "sonner"; // O 'react-hot-toast'
-// import { deleteMember } from "./requests";
-
-// // Definimos props opcionales por si el componente quiere ejecutar algo extra
-// interface UseDeleteMemberProps {
-//   onSuccess?: () => void;
-//   onError?: (error: unknown) => void;
-// }
-
-// export const useDeleteMember = ({
-//   onSuccess,
-//   onError,
-// }: UseDeleteMemberProps = {}) => {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: deleteMember,
-
-//     onSuccess: async () => {
-//       // 1. Feedback visual inmediato
-//       toast.success("Miembro eliminado correctamente");
-
-//       // 2. Refrescar datos en segundo plano
-//       // Usamos 'await' si queremos asegurarnos que la recarga termine antes de seguir
-//       await queryClient.invalidateQueries({ queryKey: ["members"] });
-
-//       // 3. Ejecutar callback del componente (ej: cerrar modal)
-//       if (onSuccess) onSuccess();
-//     },
-
-//     onError: (error: any) => {
-//       // Lógica para extraer el mensaje de error de tu backend
-//       const description =
-//         error?.response?.data?.error?.description || "Error desconocido";
-
-//       toast.error(`No se pudo eliminar: ${description}`);
-
-//       if (onError) onError(error);
-//     },
-//   });
-// };

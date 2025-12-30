@@ -1,7 +1,6 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Icons
 import {
   Search,
   MoreHorizontal,
@@ -33,10 +31,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Eye, // Icon for Plans
+  Eye,
 } from "lucide-react";
 
-// Logic & Types
 import { useDeletePlan } from "@/features/plans/mutations";
 import { getPlans } from "@/features/plans/requests";
 import type { Plan } from "../../../../../server/src/domain/entities/plan";
@@ -47,12 +44,10 @@ export default function PlansListingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Params
   const CURRENT_PAGE = parseInt(searchParams.get("page") || "1");
   const PAGE_SIZE = parseInt(searchParams.get("pageSize") || "10");
   const search = searchParams.get("search") || "";
 
-  // React Query
   const request = {
     filters: { search },
     page: CURRENT_PAGE,
@@ -69,13 +64,11 @@ export default function PlansListingPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Derived State
   const result = response?.data;
   const records = result?.records ?? [];
   const totalRecords = result?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  // Handlers
   const handleSearch = (term: string) => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -173,83 +166,80 @@ export default function PlansListingPage() {
               </TableHeader>
               <TableBody>
                 {records.map((plan, index) => (
-                    <TableRow
-                      key={plan.id}
-                      className="hover:bg-muted/5 group"
-                    >
-                      <TableCell className="text-center text-muted-foreground text-xs">
-                        {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
-                      </TableCell>
+                  <TableRow key={plan.id} className="hover:bg-muted/5 group">
+                    <TableCell className="text-center text-muted-foreground text-xs">
+                      {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
+                    </TableCell>
 
-                      <TableCell>
-                        <span className="font-medium text-sm">
-                            {plan.name}
-                        </span>
-                      </TableCell>
+                    <TableCell>
+                      <span className="font-medium text-sm">{plan.name}</span>
+                    </TableCell>
 
-                      <TableCell>
-                         <span className="text-sm font-medium">
-                            {/* Assuming price is number or string acceptable by Intl */}
-                            {new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(Number(plan.price))}
-                         </span>
-                      </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium">
+                        {/* Assuming price is number or string acceptable by Intl */}
+                        {new Intl.NumberFormat("es-PE", {
+                          style: "currency",
+                          currency: "PEN",
+                        }).format(Number(plan.price))}
+                      </span>
+                    </TableCell>
 
-                      <TableCell>
-                        <span className="text-sm">
-                            {plan.durationInDays} días
-                        </span>
-                      </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {plan.durationInDays} días
+                      </span>
+                    </TableCell>
 
-                      <TableCell>
-                        <Badge
-                          variant={plan.isActive ? "default" : "secondary"}
-                          className={`text-[10px] px-2 py-0.5 ${
-                            plan.isActive
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                          }`}
-                        >
-                          {plan.isActive ? "ACTIVO" : "INACTIVO"}
-                        </Badge>
-                      </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={plan.isActive ? "default" : "secondary"}
+                        className={`text-[10px] px-2 py-0.5 ${
+                          plan.isActive
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                        }`}
+                      >
+                        {plan.isActive ? "ACTIVO" : "INACTIVO"}
+                      </Badge>
+                    </TableCell>
 
-                      <TableCell className="text-right pr-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <span className="sr-only">Abrir menú</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => navigate(`${plan.id}`)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => navigate(`${plan.id}/editar`)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(plan.id)}
-                              disabled={isDeleting}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  )
-                )}
+                    <TableCell className="text-right pr-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="sr-only">Abrir menú</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => navigate(`${plan.id}`)}
+                          >
+                            <Eye className="mr-2 h-4 w-4" /> Ver detalle
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => navigate(`${plan.id}/editar`)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDelete(plan.id)}
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
@@ -286,7 +276,6 @@ export default function PlansListingPage() {
   );
 }
 
-// SKELETON LOADER COMPONENT
 function PlansTableSkeleton() {
   return (
     <div className="p-4">

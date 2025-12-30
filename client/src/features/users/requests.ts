@@ -1,12 +1,12 @@
-import { apiFetch } from "@/lib/api/apiFetch";
-import type { ApiResponse } from "../../../../../server/src/types/api";
-import type { User, UserCreateInput, UserUpdateInput } from "../../../../../server/src/domain/entities/user";
-import type { IPageableResult } from "../../../../../server/src/application/common/pagination";
+import type { User, UserCreateInput, UserUpdateInput } from "@/entities/user";
+import type { IPageableResult } from "../../../../server/src/application/common/pagination";
+import type { ApiResponse } from "../../../../server/src/types/api";
+import { apiFetch } from "../../lib/api/api-fetch";
 
 export const getUsers = async (params: {
   page: number;
   pageSize: number;
-  filters?: { search?: string, role?: string };
+  filters?: { search?: string; role?: string };
 }) => {
   const queryParams = new URLSearchParams({
     page: params.page.toString(),
@@ -17,9 +17,9 @@ export const getUsers = async (params: {
     queryParams.append("search", params.filters.search);
   }
 
-  if (params.filters?.role) {
-      queryParams.append("role", params.filters.role);
-  }
+  // if (params.filters?.role) {
+  //   queryParams.append("role", params.filters.role);
+  // }
 
   return apiFetch<ApiResponse<IPageableResult<User>>>(
     `/users?${queryParams.toString()}`
@@ -33,9 +33,6 @@ export const getUser = async (id: string) => {
 export const createUser = async (data: UserCreateInput) => {
   return apiFetch<ApiResponse<User>>("/users", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };
@@ -49,9 +46,6 @@ export const updateUser = async ({
 }) => {
   return apiFetch<ApiResponse<User>>(`/users/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };

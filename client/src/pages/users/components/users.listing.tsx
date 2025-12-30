@@ -1,7 +1,6 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Icons
 import {
   Search,
   MoreHorizontal,
@@ -34,10 +32,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
-  Eye, // Icon for Users/Admin
+  Eye,
 } from "lucide-react";
 
-// Logic & Types
 import { useDeleteUser } from "@/features/users/mutations";
 import { getUsers } from "@/features/users/requests";
 import type { User } from "../../../../../server/src/domain/entities/user";
@@ -48,12 +45,10 @@ export default function UsersListingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Params
   const CURRENT_PAGE = parseInt(searchParams.get("page") || "1");
   const PAGE_SIZE = parseInt(searchParams.get("pageSize") || "10");
   const search = searchParams.get("search") || "";
 
-  // React Query
   const request = {
     filters: { search },
     page: CURRENT_PAGE,
@@ -70,13 +65,11 @@ export default function UsersListingPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Derived State
   const result = response?.data;
   const records = result?.records ?? [];
   const totalRecords = result?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  // Handlers
   const handleSearch = (term: string) => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -103,7 +96,6 @@ export default function UsersListingPage() {
     }
   };
 
-  // Helper para iniciales
   const getInitials = (first: string, last?: string | null) => {
     return `${first.charAt(0)}${last ? last.charAt(0) : ""}`.toUpperCase();
   };
@@ -179,94 +171,93 @@ export default function UsersListingPage() {
               </TableHeader>
               <TableBody>
                 {records.map((user, index) => (
-                    <TableRow
-                      key={user.id}
-                      className="hover:bg-muted/5 group"
-                    >
-                      <TableCell className="text-center text-muted-foreground text-xs">
-                        {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
-                      </TableCell>
+                  <TableRow key={user.id} className="hover:bg-muted/5 group">
+                    <TableCell className="text-center text-muted-foreground text-xs">
+                      {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
+                    </TableCell>
 
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border">
-                            <AvatarFallback className="text-xs bg-primary/5 text-primary font-medium">
-                              {getInitials(user.firstName, user.lastName)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm">
-                              {user.firstName} {user.lastName}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">
-                              @{user.username || "-"}
-                            </span>
-                          </div>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 border">
+                          <AvatarFallback className="text-xs bg-primary/5 text-primary font-medium">
+                            {getInitials(user.firstName, user.lastName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">
+                            {user.firstName} {user.lastName}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            @{user.username || "-"}
+                          </span>
                         </div>
-                      </TableCell>
+                      </div>
+                    </TableCell>
 
-                      <TableCell>
-                         <span className="text-sm text-muted-foreground">
-                            {user.email}
-                         </span>
-                      </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {user.email}
+                      </span>
+                    </TableCell>
 
-                      <TableCell>
-                         <Badge variant="outline" className="font-normal text-xs uppercase bg-secondary/50">
-                            {user.role}
-                         </Badge>
-                      </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="font-normal text-xs uppercase bg-secondary/50"
+                      >
+                        {user.role}
+                      </Badge>
+                    </TableCell>
 
-                      <TableCell>
-                        <Badge
-                          variant={user.isActive ? "default" : "secondary"}
-                          className={`text-[10px] px-2 py-0.5 ${
-                            user.isActive
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                          }`}
-                        >
-                          {user.isActive ? "ACTIVO" : "INACTIVO"}
-                        </Badge>
-                      </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={user.isActive ? "default" : "secondary"}
+                        className={`text-[10px] px-2 py-0.5 ${
+                          user.isActive
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                        }`}
+                      >
+                        {user.isActive ? "ACTIVO" : "INACTIVO"}
+                      </Badge>
+                    </TableCell>
 
-                      <TableCell className="text-right pr-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <span className="sr-only">Abrir menú</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => navigate(`${user.id}`)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => navigate(`${user.id}/editar`)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(user.id)}
-                              disabled={isDeleting}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  )
-                )}
+                    <TableCell className="text-right pr-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="sr-only">Abrir menú</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => navigate(`${user.id}`)}
+                          >
+                            <Eye className="mr-2 h-4 w-4" /> Ver detalle
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => navigate(`${user.id}/editar`)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDelete(user.id)}
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
@@ -303,7 +294,6 @@ export default function UsersListingPage() {
   );
 }
 
-// SKELETON LOADER COMPONENT
 function UsersTableSkeleton() {
   return (
     <div className="p-4">
@@ -318,8 +308,8 @@ function UsersTableSkeleton() {
           <div key={i} className="flex items-center justify-between py-2">
             <Skeleton className="h-4 w-12 hidden sm:block" />
             <div className="flex items-center gap-3">
-               <Skeleton className="h-8 w-8 rounded-full" />
-               <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-32" />
             </div>
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-4 w-20" />

@@ -33,7 +33,7 @@ const userBaseShape = z.object({
 
 /** SCHEMA DE SALIDA (Lo que recibes del backend - SIN PASSWORD) */
 export const userSchema = userBaseShape.extend({
-  id: z.string().cuid(),
+  id: z.cuid2(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -47,6 +47,6 @@ export type UserCreateInput = z.infer<typeof userCreateSchema>;
 
 /** SCHEMA DE ACTUALIZACIÓN (Password opcional) */
 export const userUpdateSchema = userBaseShape.partial().extend({
-  password: z.string().min(6).optional(), // Solo si quiere cambiarla
+  password: z.union([z.string().min(6), z.literal("")]).optional(), // Solo si quiere cambiarla
 });
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;

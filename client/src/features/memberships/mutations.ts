@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMembership, deleteMembership, updateMembership } from "./requests";
+import { toast } from "sonner";
 
 export const useCreateMembership = () => {
   const queryClient = useQueryClient();
@@ -7,10 +8,8 @@ export const useCreateMembership = () => {
   return useMutation({
     mutationFn: createMembership,
     onSuccess: () => {
+      toast.success("Membresía creada exitosamente");
       queryClient.invalidateQueries({ queryKey: ["memberships"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };
@@ -21,11 +20,9 @@ export const useUpdateMembership = () => {
   return useMutation({
     mutationFn: updateMembership,
     onSuccess: () => {
+      toast.success("Membresía actualizada exitosamente");
       queryClient.invalidateQueries({ queryKey: ["memberships"] });
       queryClient.invalidateQueries({ queryKey: ["membership"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };
@@ -36,10 +33,8 @@ export const useDeleteMembership = () => {
   return useMutation({
     mutationFn: (variables: { id: string }) => deleteMembership(variables.id),
     onSuccess: () => {
+      toast.success("Membresía eliminada exitosamente");
       queryClient.invalidateQueries({ queryKey: ["memberships"] });
-    },
-    onError: (error) => {
-      console.error(error);
     },
   });
 };

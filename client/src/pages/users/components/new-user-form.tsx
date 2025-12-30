@@ -96,7 +96,13 @@ export default function NewUserForm() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName" className="text-xs">Apellidos</Label>
-                    <Input className="h-9 text-sm" {...register("lastName")} placeholder="Ej: Pérez" />
+                    <Input 
+                      className="h-9 text-sm" 
+                      {...register("lastName", {
+                        setValueAs: (v) => (v === "" ? null : v),
+                      })} 
+                      placeholder="Ej: Pérez" 
+                    />
                     <ErrorMessage message={errors.lastName?.message} />
                   </div>
                </div>
@@ -105,7 +111,13 @@ export default function NewUserForm() {
                   <Label htmlFor="username" className="text-xs">Nombre de Usuario</Label>
                   <div className="relative">
                       <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input className="h-9 pl-9 text-sm" {...register("username")} placeholder="ej: juanperez" />
+                      <Input 
+                        className="h-9 pl-9 text-sm" 
+                        {...register("username", {
+                          setValueAs: (v) => (v === "" ? null : v),
+                        })} 
+                        placeholder="ej: juanperez" 
+                      />
                   </div>
                   <ErrorMessage message={errors.username?.message} />
                </div>
