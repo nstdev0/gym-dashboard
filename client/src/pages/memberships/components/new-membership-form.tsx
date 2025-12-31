@@ -32,7 +32,7 @@ import {
 } from "../../../../../server/src/domain/entities/membership";
 
 import { CreditCard, Save, Undo2, Calendar, DollarSign } from "lucide-react";
-import type { Plan } from "@/entities/plan";
+import type { Plan } from "@server/entities/plan";
 
 export default function NewMembershipForm() {
   const navigate = useNavigate();
@@ -41,13 +41,13 @@ export default function NewMembershipForm() {
     queryKey: ["members", "all"],
     queryFn: () => getMembers({ page: 1, pageSize: 1000 }),
   });
-  const members = membersResponse?.data?.records ?? [];
+  const members = membersResponse?.records ?? [];
 
   const { data: plansResponse } = useQuery({
     queryKey: ["plans", "all"],
     queryFn: () => getPlans({ page: 1, pageSize: 10 }),
   });
-  const plans: Plan[] = plansResponse?.data?.records ?? [];
+  const plans: Plan[] = plansResponse?.records ?? [];
 
   const {
     register,

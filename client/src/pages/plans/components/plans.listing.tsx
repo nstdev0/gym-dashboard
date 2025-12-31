@@ -36,9 +36,6 @@ import {
 
 import { useDeletePlan } from "@/features/plans/mutations";
 import { getPlans } from "@/features/plans/requests";
-import type { Plan } from "../../../../../server/src/domain/entities/plan";
-import { type ApiResponse } from "../../../../../server/src/types/api";
-import { type IPageableResult } from "../../../../../server/src/application/common/pagination";
 
 export default function PlansListingPage() {
   const navigate = useNavigate();
@@ -58,15 +55,14 @@ export default function PlansListingPage() {
     data: response,
     isLoading,
     isError,
-  } = useQuery<ApiResponse<IPageableResult<Plan>>>({
+  } = useQuery({
     queryKey: ["plans", request],
     queryFn: () => getPlans(request),
     placeholderData: keepPreviousData,
   });
 
-  const result = response?.data;
-  const records = result?.records ?? [];
-  const totalRecords = result?.totalRecords ?? 0;
+  const records = response?.records ?? [];
+  const totalRecords = response?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
   const handleSearch = (term: string) => {
@@ -264,7 +260,7 @@ export default function PlansListingPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(CURRENT_PAGE + 1)}
-                disabled={!result?.hasNext}
+                disabled={!response?.hasNext}
               >
                 Siguiente <ChevronRight className="h-4 w-4 ml-1" />
               </Button>

@@ -48,7 +48,6 @@ import {
 export default function EditMemberForm({ id }: { id: string }) {
   const navigate = useNavigate();
 
-  // 1. Carga de datos
   const {
     data: member,
     isLoading,
@@ -58,7 +57,6 @@ export default function EditMemberForm({ id }: { id: string }) {
     queryKey: ["member", id],
   });
 
-  // 2. Definición del Formulario
   const {
     register,
     handleSubmit,
@@ -69,36 +67,39 @@ export default function EditMemberForm({ id }: { id: string }) {
   } = useForm({
     resolver: zodResolver(memberUpdateSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      docType: "DNI",
-      docNumber: "",
-      gender: "MALE",
-      birthDate: "",
-      height: null,
-      weight: null,
-      phoneNumber: "",
-      email: null,
-      isActive: true,
+      firstName: undefined,
+      lastName: undefined,
+      gender: undefined,
+      docType: undefined,
+      docNumber: undefined,
+      birthDate: undefined,
+      height: undefined,
+      weight: undefined,
+      phoneNumber: undefined,
+      email: undefined,
+      isActive: undefined,
     },
   });
 
-  // 3. Efecto para rellenar el formulario cuando llegan los datos
   useEffect(() => {
     if (member) {
-      reset({
-        ...member,
-        // Formatear fecha para input type="date" (YYYY-MM-DD)
-        gender: member.gender,
+      const newValues = {
+        firstName: member.firstName || undefined,
+        lastName: member.lastName || undefined,
+        gender: member.gender || undefined,
+        docType: member.docType || undefined,
+        docNumber: member.docNumber || undefined,
         birthDate: member.birthDate
           ? new Date(member.birthDate).toISOString().split("T")[0]
-          : "",
-        // Asegurar que nulos sean null para inputs controlados
-        email: member.email || "",
-        phoneNumber: member.phoneNumber || "",
-        height: member.height || null,
-        weight: member.weight || null,
-      });
+          : undefined,
+        email: member.email || undefined,
+        height: member.height || undefined,
+        weight: member.weight || undefined,
+        phoneNumber: member.phoneNumber || undefined,
+        isActive: member.isActive || undefined,
+      };
+
+      reset(newValues);
     }
   }, [member, reset]);
 
@@ -106,8 +107,6 @@ export default function EditMemberForm({ id }: { id: string }) {
   const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
 
   const onSubmit: SubmitHandler<MemberUpdateInput> = (data) => {
-    // Limpiamos strings vacíos a null antes de enviar si es necesario,
-    // aunque Zod coerce debería encargarse.
     updateMember(
       { id, data },
       { onSuccess: () => navigate("/admin/dashboard/miembros") }
@@ -192,7 +191,7 @@ export default function EditMemberForm({ id }: { id: string }) {
                             field.onChange(val);
                             trigger("docNumber");
                           }}
-                          value={field.value}
+                          value={field.value || undefined}
                         >
                           <SelectTrigger className="h-9 text-sm">
                             <SelectValue placeholder="Seleccionar" />
@@ -259,7 +258,10 @@ export default function EditMemberForm({ id }: { id: string }) {
                       name="gender"
                       render={({ field }) => (
                         <Select
-                          onValueChange={field.onChange}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            trigger("gender");
+                          }}
                           value={field.value || undefined}
                         >
                           <SelectTrigger className="h-9 text-sm">

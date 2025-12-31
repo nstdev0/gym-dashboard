@@ -50,15 +50,11 @@ export default function EditMembershipForm({ id }: { id: string }) {
 
   const member = membership?.member;
 
-  console.log("member------->", member);
-  console.log("membership------->", membership);
-  console.log("ID------->", id);
-
   const { data: plansResponse } = useQuery({
     queryKey: ["plans", "all"],
     queryFn: () => getPlans({ page: 1, pageSize: 100 }),
   });
-  const plans: Plan[] = plansResponse?.data?.records ?? [];
+  const plans: Plan[] = plansResponse?.records ?? [];
 
   const {
     register,

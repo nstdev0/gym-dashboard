@@ -26,8 +26,8 @@ export abstract class BaseRepository<TEntity, TFilters>
 
       const isPaginationEnabled = page !== undefined && pageSize !== undefined;
 
-      const skip = isPaginationEnabled ? (page - 1) * pageSize : undefined;
       const take = isPaginationEnabled ? pageSize : undefined;
+      const skip = isPaginationEnabled ? (page - 1) * pageSize : undefined;
 
       let whereClause: any = {};
       if (request?.filters) {
@@ -116,7 +116,9 @@ export abstract class BaseRepository<TEntity, TFilters>
   protected handleError(error: any): never {
     if (error?.code === "P2002") {
       // Extract constraint name if available, otherwise use a generic message
-      const constraint = error.meta?.target ? error.meta.target.join(', ') : 'unique';
+      const constraint = error.meta?.target
+        ? error.meta.target.join(", ")
+        : "unique";
       throw new AppError(
         `Unique constraint failed on the ${constraint} constraint`,
         409,
@@ -137,7 +139,9 @@ export abstract class BaseRepository<TEntity, TFilters>
     console.error("Repository Error:", error);
     // Handle cleanup for other potential Prisma errors or generic errors
     throw new AppError(
-      error instanceof Error ? error.message : "Error en la operación de base de datos.",
+      error instanceof Error
+        ? error.message
+        : "Error en la operación de base de datos.",
       500,
       "DB_ERROR"
     );

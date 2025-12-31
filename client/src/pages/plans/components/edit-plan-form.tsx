@@ -40,7 +40,7 @@ export default function EditPlanForm() {
   const { id } = useParams<{ id: string }>();
 
   const {
-    data: response,
+    data: plan,
     isLoading,
     isError,
   } = useQuery({
@@ -48,8 +48,6 @@ export default function EditPlanForm() {
     queryFn: () => getPlan(id!),
     enabled: !!id,
   });
-
-  const plan = response?.data;
 
   const {
     register,
@@ -60,22 +58,22 @@ export default function EditPlanForm() {
   } = useForm({
     resolver: zodResolver(planUpdateSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      price: 0,
-      durationInDays: 30,
-      isActive: true,
+      name: undefined,
+      description: undefined,
+      price: undefined,
+      durationInDays: undefined,
+      isActive: undefined,
     },
   });
 
   useEffect(() => {
     if (plan) {
       reset({
-        name: plan.name,
-        description: plan.description || "",
-        price: Number(plan.price),
-        durationInDays: plan.durationInDays,
-        isActive: plan.isActive,
+        name: plan.name || undefined,
+        description: plan.description || undefined,
+        price: Number(plan.price) || undefined,
+        durationInDays: plan.durationInDays || undefined,
+        isActive: plan.isActive || undefined,
       });
     }
   }, [plan, reset]);

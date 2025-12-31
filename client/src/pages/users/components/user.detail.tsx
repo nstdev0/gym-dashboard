@@ -31,15 +31,13 @@ const formatDate = (date?: Date | string | null) => {
 
 export default function UserDetail({ id }: { id: string }) {
   const {
-    data: response,
+    data: user,
     isLoading,
     isError,
   } = useQuery({
     queryFn: () => getUser(id),
     queryKey: ["user", id],
   });
-
-  const user = response?.data;
 
   if (isLoading) return <UserDetailSkeleton />;
 

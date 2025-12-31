@@ -18,7 +18,7 @@ import {
   ClipboardList,
   AlertCircle,
   CheckCircle2,
-  XCircle
+  XCircle,
 } from "lucide-react";
 
 const formatDate = (date?: Date | string | null) => {
@@ -32,15 +32,13 @@ const formatDate = (date?: Date | string | null) => {
 
 export default function PlanDetail({ id }: { id: string }) {
   const {
-    data: response,
+    data: plan,
     isLoading,
     isError,
   } = useQuery({
     queryFn: () => getPlan(id),
     queryKey: ["plan", id],
   });
-  
-  const plan = response?.data;
 
   if (isLoading) return <PlanDetailSkeleton />;
 
@@ -84,9 +82,13 @@ export default function PlanDetail({ id }: { id: string }) {
                 }
               >
                 {plan.isActive ? (
-                   <><CheckCircle2 className="w-3 h-3 mr-1"/> ACTIVO</>
+                  <>
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVO
+                  </>
                 ) : (
-                   <><XCircle className="w-3 h-3 mr-1"/> INACTIVO</>
+                  <>
+                    <XCircle className="w-3 h-3 mr-1" /> INACTIVO
+                  </>
                 )}
               </Badge>
             </div>
@@ -125,7 +127,7 @@ export default function PlanDetail({ id }: { id: string }) {
         </CardContent>
 
         <CardFooter className="bg-muted/10 border-t py-4 text-xs text-muted-foreground flex justify-between items-center">
-            <span>Última actualización: {formatDate(plan.updatedAt)}</span>
+          <span>Última actualización: {formatDate(plan.updatedAt)}</span>
         </CardFooter>
       </Card>
     </div>
@@ -180,8 +182,8 @@ function PlanDetailSkeleton() {
         </div>
         <Skeleton className="h-px w-full" />
         <div className="space-y-2">
-           <Skeleton className="h-4 w-32" />
-           <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-16 w-full" />
         </div>
       </CardContent>
     </Card>

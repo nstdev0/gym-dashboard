@@ -1,3 +1,4 @@
+import type { ApiResponse } from "../../../../server/src/types/api";
 import { config } from "../../config/config";
 import { ApiError } from "./api-error";
 
@@ -23,16 +24,33 @@ export async function apiFetch<T>(
     return {} as T;
   }
 
-  const data = await response.json().catch(() => ({}));
+  const apiResponse = await response.json().catch(() => {
+    console.log("Ocurrio un error en el parseo de la respuesta");
+  });
 
   // Si la respuesta no es OK (Status 4xx o 5xx)
   if (!response.ok) {
-    const errorMessage = data?.message || "Ocurrió un error inesperado";
-    const errorDetails = data?.errors || undefined;
-    const errorCode = data?.code || undefined;
+    const errorMessage = apiResponse?.message || "Ocurrió un error inesperado";
+    const errorDetails = apiResponse?.errors || undefined;
+    const errorCode = apiResponse?.code || undefined;
 
     throw new ApiError(errorMessage, response.status, errorDetails, errorCode);
   }
 
-  return data as T;
+  if (!validateBackendResponse<T>(apiResponse)) {
+    throw new Error(
+      "La respuesta de la api no coincide con el formato esperado"
+    );
+  }
+
+  return apiResponse.data as T;
+}
+
+function validateBackendResponse<T>(
+  response: unknown
+): response is ApiResponse<T> {
+  if (!response || typeof response !== "object") {
+    return false;
+  }
+  return "isSuccess" in response;
 }

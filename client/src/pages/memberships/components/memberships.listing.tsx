@@ -36,9 +36,6 @@ import {
 
 import { useDeleteMembership } from "@/features/memberships/mutations";
 import { getMemberships } from "@/features/memberships/requests";
-import type { Membership } from "../../../../../server/src/domain/entities/membership";
-import { type ApiResponse } from "../../../../../server/src/types/api";
-import { type IPageableResult } from "../../../../../server/src/application/common/pagination";
 import { Button } from "@/components/ui/button";
 
 export default function MembershipsListingPage() {
@@ -59,15 +56,14 @@ export default function MembershipsListingPage() {
     data: response,
     isLoading,
     isError,
-  } = useQuery<ApiResponse<IPageableResult<Membership>>>({
+  } = useQuery({
     queryKey: ["memberships", request],
     queryFn: () => getMemberships(request),
     placeholderData: keepPreviousData,
   });
 
-  const result = response?.data;
-  const records = result?.records ?? [];
-  const totalRecords = result?.totalRecords ?? 0;
+  const records = response?.records ?? [];
+  const totalRecords = response?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
   const handleSearch = (term: string) => {
@@ -309,7 +305,7 @@ export default function MembershipsListingPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(CURRENT_PAGE + 1)}
-                disabled={!result?.hasNext}
+                disabled={!response?.hasNext}
               >
                 Siguiente <ChevronRight className="h-4 w-4 ml-1" />
               </Button>

@@ -19,7 +19,7 @@ import {
   XCircle,
   User,
   DollarSign,
-  Clock
+  Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -34,15 +34,13 @@ const formatDate = (date?: Date | string | null) => {
 
 export default function MembershipDetail({ id }: { id: string }) {
   const {
-    data: response,
+    data: membership,
     isLoading,
     isError,
   } = useQuery({
-    queryFn: () => getMembership(id),
+    queryFn: () => getMembership({ id }),
     queryKey: ["membership", id],
   });
-  
-  const membership = response?.data;
 
   if (isLoading) return <MembershipDetailSkeleton />;
 
@@ -59,7 +57,7 @@ export default function MembershipDetail({ id }: { id: string }) {
 
   const daysRemaining = Math.ceil(
     (new Date(membership.endDate).getTime() - new Date().getTime()) /
-    (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
   );
 
   return (
@@ -85,15 +83,23 @@ export default function MembershipDetail({ id }: { id: string }) {
 
             <div className="flex flex-wrap gap-2">
               <Badge
-                variant={membership.status === "ACTIVE" ? "default" : "secondary"}
+                variant={
+                  membership.status === "ACTIVE" ? "default" : "secondary"
+                }
                 className={
-                  membership.status === "ACTIVE" ? "bg-green-600 hover:bg-green-700" : ""
+                  membership.status === "ACTIVE"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : ""
                 }
               >
                 {membership.status === "ACTIVE" ? (
-                   <><CheckCircle2 className="w-3 h-3 mr-1"/> ACTIVA</>
+                  <>
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVA
+                  </>
                 ) : (
-                   <><XCircle className="w-3 h-3 mr-1"/> INACTIVA</>
+                  <>
+                    <XCircle className="w-3 h-3 mr-1" /> INACTIVA
+                  </>
                 )}
               </Badge>
             </div>
@@ -101,27 +107,31 @@ export default function MembershipDetail({ id }: { id: string }) {
         </CardHeader>
 
         <CardContent className="pt-8 grid gap-8">
-          
           <div>
             <h4 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">
-               Miembro Asociado
+              Miembro Asociado
             </h4>
             <div className="flex items-center gap-4 bg-muted/5 border rounded-lg p-4">
-               <div className="p-2 bg-secondary rounded-full">
-                   <User className="h-5 w-5 text-secondary-foreground"/>
-               </div>
-               <div>
-                   {membership.member ? (
-                       <Link to={`/admin/dashboard/miembros/${membership.memberId}`} className="text-lg font-medium hover:underline text-primary">
-                          {membership.member.firstName} {membership.member.lastName}
-                       </Link>
-                   ) : (
-                       <span className="text-lg font-medium">Miembro Desconocido</span>
-                   )}
-                   <p className="text-sm text-muted-foreground">
-                      {membership.member?.docType}: {membership.member?.docNumber}
-                   </p>
-               </div>
+              <div className="p-2 bg-secondary rounded-full">
+                <User className="h-5 w-5 text-secondary-foreground" />
+              </div>
+              <div>
+                {membership.member ? (
+                  <Link
+                    to={`/admin/dashboard/miembros/${membership.memberId}`}
+                    className="text-lg font-medium hover:underline text-primary"
+                  >
+                    {membership.member.firstName} {membership.member.lastName}
+                  </Link>
+                ) : (
+                  <span className="text-lg font-medium">
+                    Miembro Desconocido
+                  </span>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {membership.member?.docType}: {membership.member?.docNumber}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -142,22 +152,29 @@ export default function MembershipDetail({ id }: { id: string }) {
               icon={<Clock className="h-4 w-4" />}
               label="Días Restantes"
               value={
-                  <span className={daysRemaining < 0 ? "text-destructive" : daysRemaining < 7 ? "text-orange-500" : "text-green-600"}>
-                      {daysRemaining} días
-                  </span>
+                <span
+                  className={
+                    daysRemaining < 0
+                      ? "text-destructive"
+                      : daysRemaining < 7
+                      ? "text-orange-500"
+                      : "text-green-600"
+                  }
+                >
+                  {daysRemaining} días
+                </span>
               }
             />
-             <InfoItem
+            <InfoItem
               icon={<DollarSign className="h-4 w-4" />}
               label="Precio Pagado"
               value={`S/ ${Number(membership.price).toFixed(2)}`}
             />
           </div>
-
         </CardContent>
 
         <CardFooter className="bg-muted/10 border-t py-4 text-xs text-muted-foreground flex justify-between items-center">
-            <span>Registrada el: {formatDate(membership.createdAt)}</span>
+          <span>Registrada el: {formatDate(membership.createdAt)}</span>
         </CardFooter>
       </Card>
     </div>

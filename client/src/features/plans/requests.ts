@@ -1,13 +1,16 @@
-import type { Plan, PlanCreateInput, PlanUpdateInput } from "@/entities/plan";
+import type {
+  Plan,
+  PlanCreateInput,
+  PlanUpdateInput,
+} from "@server/entities/plan";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
-import type { ApiResponse } from "../../../../server/src/types/api";
 import { apiFetch } from "../../lib/api/api-fetch";
 
 export const getPlans = async (params: {
   page: number;
   pageSize: number;
   filters?: { search?: string; isActive?: boolean };
-}) => {
+}): Promise<IPageableResult<Plan>> => {
   const queryParams = new URLSearchParams({
     page: params.page.toString(),
     pageSize: params.pageSize.toString(),
@@ -21,17 +24,15 @@ export const getPlans = async (params: {
     queryParams.append("isActive", params.filters.isActive.toString());
   }
 
-  return apiFetch<ApiResponse<IPageableResult<Plan>>>(
-    `/plans?${queryParams.toString()}`
-  );
+  return apiFetch<IPageableResult<Plan>>(`/plans?${queryParams.toString()}`);
 };
 
 export const getPlan = async (id: string) => {
-  return apiFetch<ApiResponse<Plan>>(`/plans/${id}`);
+  return apiFetch<Plan>(`/plans/${id}`);
 };
 
 export const createPlan = async (data: PlanCreateInput) => {
-  return apiFetch<ApiResponse<Plan>>("/plans", {
+  return apiFetch<Plan>("/plans", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -44,14 +45,14 @@ export const updatePlan = async ({
   id: string;
   data: PlanUpdateInput;
 }) => {
-  return apiFetch<ApiResponse<Plan>>(`/plans/${id}`, {
+  return apiFetch<Plan>(`/plans/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 };
 
 export const deletePlan = async (id: string) => {
-  return apiFetch<ApiResponse<Plan>>(`/plans/${id}`, {
+  return apiFetch<Plan>(`/plans/${id}`, {
     method: "DELETE",
   });
 };

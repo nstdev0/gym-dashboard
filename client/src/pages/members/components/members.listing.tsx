@@ -37,9 +37,6 @@ import {
 
 import { useDeleteMember } from "@/features/members/mutations";
 import { getMembers } from "@/features/members/requests";
-import { type ApiResponse } from "../../../../../server/src/types/api";
-import { type IPageableResult } from "../../../../../server/src/application/common/pagination";
-import type { Member } from "@server/entities/member";
 
 export default function MembersListingPage() {
   const navigate = useNavigate();
@@ -55,17 +52,13 @@ export default function MembersListingPage() {
     pageSize: PAGE_SIZE,
   };
 
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useQuery<ApiResponse<IPageableResult<Member>>>({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["members", request],
     queryFn: () => getMembers(request),
     placeholderData: keepPreviousData,
   });
 
-  const result = response?.data;
+  const result = data;
   const records = result?.records ?? [];
   const totalRecords = result?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);

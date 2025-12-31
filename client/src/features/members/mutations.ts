@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMember, deleteMember, updateMember } from "./requests";
-import type { MemberCreateInput, MemberUpdateInput } from "@/entities/member";
 import { toast } from "sonner";
+import type {
+  MemberCreateInput,
+  MemberUpdateInput,
+} from "@server/entities/member";
 
 export const useCreateMember = () => {
   const queryClient = useQueryClient();

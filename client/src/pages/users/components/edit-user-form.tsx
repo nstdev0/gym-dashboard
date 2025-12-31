@@ -39,7 +39,7 @@ export default function EditUserForm() {
   const { id } = useParams<{ id: string }>();
 
   const {
-    data: response,
+    data: user,
     isLoading,
     isError,
   } = useQuery({
@@ -47,36 +47,36 @@ export default function EditUserForm() {
     queryFn: () => getUser(id!),
     enabled: !!id,
   });
-  const user = response?.data;
 
   const {
     register,
     handleSubmit,
     control,
     reset,
+    trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(userUpdateSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      username: "",
-      email: "",
+      firstName: undefined,
+      lastName: undefined,
+      username: undefined,
+      email: undefined,
       password: "",
-      role: "STAFF" as const,
-      isActive: true,
+      role: undefined,
+      isActive: undefined,
     },
   });
 
   useEffect(() => {
     if (user) {
       reset({
-        firstName: user.firstName,
-        lastName: user.lastName || "",
-        username: user.username || "",
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        username: user.username || undefined,
+        email: user.email || undefined,
+        role: user.role || undefined,
+        isActive: user.isActive || undefined,
         password: "",
       });
     }
@@ -216,13 +216,17 @@ export default function EditUserForm() {
                     name="role"
                     render={({ field }) => (
                       <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          trigger("role");
+                        }}
+                        value={field.value || undefined}
                       >
                         <SelectTrigger className="h-9 text-sm">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="OWNER">Propietario</SelectItem>
                           <SelectItem value="ADMIN">Administrador</SelectItem>
                           <SelectItem value="STAFF">Staff</SelectItem>
                         </SelectContent>

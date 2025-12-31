@@ -37,9 +37,6 @@ import {
 
 import { useDeleteUser } from "@/features/users/mutations";
 import { getUsers } from "@/features/users/requests";
-import type { User } from "../../../../../server/src/domain/entities/user";
-import { type ApiResponse } from "../../../../../server/src/types/api";
-import { type IPageableResult } from "../../../../../server/src/application/common/pagination";
 
 export default function UsersListingPage() {
   const navigate = useNavigate();
@@ -59,15 +56,14 @@ export default function UsersListingPage() {
     data: response,
     isLoading,
     isError,
-  } = useQuery<ApiResponse<IPageableResult<User>>>({
+  } = useQuery({
     queryKey: ["users", request],
     queryFn: () => getUsers(request),
     placeholderData: keepPreviousData,
   });
 
-  const result = response?.data;
-  const records = result?.records ?? [];
-  const totalRecords = result?.totalRecords ?? 0;
+  const records = response?.records ?? [];
+  const totalRecords = response?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
   const handleSearch = (term: string) => {
@@ -282,7 +278,7 @@ export default function UsersListingPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(CURRENT_PAGE + 1)}
-                disabled={!result?.hasNext}
+                disabled={!response?.hasNext}
               >
                 Siguiente <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
