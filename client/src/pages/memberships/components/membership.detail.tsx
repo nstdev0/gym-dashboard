@@ -9,8 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { getMembership } from "@/features/memberships/requests";
-import { useQuery } from "@tanstack/react-query";
+import type { Membership } from "@server/entities/membership";
 import {
   Calendar,
   CreditCard,
@@ -32,16 +31,15 @@ const formatDate = (date?: Date | string | null) => {
   });
 };
 
-export default function MembershipDetail({ id }: { id: string }) {
-  const {
-    data: membership,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryFn: () => getMembership({ id }),
-    queryKey: ["membership", id],
-  });
-
+export default function MembershipDetail({
+  membership,
+  isError,
+  isLoading,
+}: {
+  membership: Membership | undefined | null;
+  isError: boolean;
+  isLoading: boolean;
+}) {
   if (isLoading) return <MembershipDetailSkeleton />;
 
   if (isError || !membership) {

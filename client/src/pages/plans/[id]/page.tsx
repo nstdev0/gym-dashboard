@@ -2,8 +2,17 @@ import PageHeader from "@/components/ui/PageHeader";
 import PlanDetail from "../components/plan.detail";
 import { useParams } from "react-router-dom";
 
+import { getPlan } from "@/features/plans/requests";
+import { useQuery } from "@tanstack/react-query";
+
 export default function PlanDetailPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getPlan(id!),
+    queryKey: ["plan", id],
+    enabled: !!id,
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -23,7 +32,7 @@ export default function PlanDetailPage() {
           },
         ]}
       />
-      <PlanDetail id={id} />
+      <PlanDetail plan={data} isError={isError} isLoading={isLoading} />
     </div>
   );
 }

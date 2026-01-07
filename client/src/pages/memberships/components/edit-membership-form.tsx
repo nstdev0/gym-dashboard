@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,35 +17,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-
 import { useUpdateMembership } from "@/features/memberships/mutations";
-import { getMembership } from "@/features/memberships/requests";
 import { getPlans } from "@/features/plans/requests";
-import {
-  membershipUpdateSchema,
-  type MembershipUpdateInput,
-} from "../../../../../server/src/domain/entities/membership";
 
 import { CreditCard, Save, Undo2, Calendar, DollarSign } from "lucide-react";
 import type { Plan } from "@server/entities/plan";
 
-export default function EditMembershipForm({ id }: { id: string }) {
-  const navigate = useNavigate();
+import {
+  membershipUpdateSchema,
+  type Membership,
+  type MembershipUpdateInput,
+} from "@server/entities/membership";
 
-  const {
-    data: membership,
-    isLoading: isLoadingMembership,
-    isError,
-  } = useQuery({
-    queryKey: ["membership", id],
-    queryFn: () => getMembership({ id }),
-  });
+export default function EditMembershipForm({
+  membership,
+  isError,
+}: {
+  membership: Membership | undefined | null;
+  isError: boolean;
+}) {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
+  // Use props instead of query
 
   const member = membership?.member;
 
@@ -60,42 +58,22 @@ export default function EditMembershipForm({ id }: { id: string }) {
     register,
     handleSubmit,
     control,
-    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(membershipUpdateSchema),
     defaultValues: {
-      memberId: "",
-      planId: "",
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date().toISOString().split("T")[0],
-      price: 0,
-      status: "ACTIVE",
+      memberId: membership?.memberId || "",
+      planId: membership?.planId || "",
+      startDate: membership?.startDate
+        ? new Date(membership.startDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      endDate: membership?.endDate
+        ? new Date(membership.endDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      price: membership?.price ? Number(membership.price) : 0,
+      status: membership?.status || "ACTIVE",
     },
   });
-
-  useEffect(() => {
-    if (membership) {
-      const start =
-        typeof membership.startDate === "string"
-          ? membership.startDate.split("T")[0]
-          : new Date(membership.startDate).toISOString().split("T")[0];
-
-      const end =
-        typeof membership.endDate === "string"
-          ? membership.endDate.split("T")[0]
-          : new Date(membership.endDate).toISOString().split("T")[0];
-
-      reset({
-        memberId: membership.memberId,
-        planId: membership.planId,
-        startDate: start,
-        endDate: end,
-        price: Number(membership.price),
-        status: membership.status,
-      });
-    }
-  }, [membership, reset]);
 
   const { mutate, isPending } = useUpdateMembership();
 
@@ -111,7 +89,6 @@ export default function EditMembershipForm({ id }: { id: string }) {
     );
   };
 
-  if (isLoadingMembership) return <EditMembershipSkeleton />;
   if (isError)
     return <div className="text-destructive">Error al cargar la membresía</div>;
 
@@ -303,36 +280,6 @@ export default function EditMembershipForm({ id }: { id: string }) {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EditMembershipSkeleton() {
-  return (
-    <Card className="mx-auto w-full max-w-3xl border-border/60 shadow-md">
-      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-64 mt-2" />
-      </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <Skeleton className="h-px w-full" />
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-        <div className="flex justify-end gap-3">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-32" />
-        </div>
       </CardContent>
     </Card>
   );

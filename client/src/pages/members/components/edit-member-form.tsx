@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,22 +18,15 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/ui/FormError";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router-dom";
 
-import {
-  memberUpdateSchema,
-  type MemberUpdateInput,
-} from "../../../../../server/src/domain/entities/member";
 import { useDeleteMember, useUpdateMember } from "@/features/members/mutations";
-import { getMember } from "@/features/members/requests";
 
 import {
-  User,
+  User as UserIcon,
   CreditCard,
   Activity,
   Phone,
@@ -45,68 +37,52 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export default function EditMemberForm({ id }: { id: string }) {
-  const navigate = useNavigate();
+import {
+  memberUpdateSchema,
+  type Member,
+  type MemberUpdateInput,
+} from "@server/entities/member";
 
-  const {
-    data: member,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryFn: () => getMember({ id }),
-    queryKey: ["member", id],
-  });
+export default function EditMemberForm({
+  member,
+  isError,
+}: {
+  member: Member | undefined | null;
+  isError: boolean;
+}) {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const {
     register,
     handleSubmit,
     control,
-    reset,
     trigger,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(memberUpdateSchema),
     defaultValues: {
-      firstName: undefined,
-      lastName: undefined,
-      gender: undefined,
-      docType: undefined,
-      docNumber: undefined,
-      birthDate: undefined,
-      height: undefined,
-      weight: undefined,
-      phoneNumber: undefined,
-      email: undefined,
-      isActive: undefined,
+      firstName: member?.firstName || undefined,
+      lastName: member?.lastName || undefined,
+      gender: member?.gender || undefined,
+      docType: member?.docType || undefined,
+      docNumber: member?.docNumber || undefined,
+      birthDate: member?.birthDate
+        ? new Date(member.birthDate).toISOString().split("T")[0]
+        : undefined,
+      email: member?.email || undefined,
+      height: member?.height || undefined,
+      weight: member?.weight || undefined,
+      phoneNumber: member?.phoneNumber || undefined,
+      isActive: member?.isActive || undefined,
     },
   });
-
-  useEffect(() => {
-    if (member) {
-      const newValues = {
-        firstName: member.firstName || undefined,
-        lastName: member.lastName || undefined,
-        gender: member.gender || undefined,
-        docType: member.docType || undefined,
-        docNumber: member.docNumber || undefined,
-        birthDate: member.birthDate
-          ? new Date(member.birthDate).toISOString().split("T")[0]
-          : undefined,
-        email: member.email || undefined,
-        height: member.height || undefined,
-        weight: member.weight || undefined,
-        phoneNumber: member.phoneNumber || undefined,
-        isActive: member.isActive || undefined,
-      };
-
-      reset(newValues);
-    }
-  }, [member, reset]);
 
   const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
   const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
 
   const onSubmit: SubmitHandler<MemberUpdateInput> = (data) => {
+    if (!id) return;
     updateMember(
       { id, data },
       { onSuccess: () => navigate("/admin/dashboard/miembros") }
@@ -114,6 +90,7 @@ export default function EditMemberForm({ id }: { id: string }) {
   };
 
   const handleDelete = () => {
+    if (!id) return;
     if (
       window.confirm(
         "¿Estás seguro de eliminar este miembro? Esta acción no se puede deshacer."
@@ -127,7 +104,7 @@ export default function EditMemberForm({ id }: { id: string }) {
   };
 
   // --- ESTADO DE CARGA (SKELETON) ---
-  if (isLoading) return <EditMemberSkeleton />;
+  // Managed by parent component
 
   // --- ESTADO DE ERROR ---
   if (isError || !member)
@@ -148,7 +125,7 @@ export default function EditMemberForm({ id }: { id: string }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-full text-primary">
-              <User className="h-5 w-5" />
+              <UserIcon className="h-5 w-5" />
             </div>
             <div>
               <CardTitle className="text-lg">Editar Miembro</CardTitle>
@@ -226,7 +203,7 @@ export default function EditMemberForm({ id }: { id: string }) {
               {/* SECCIÓN 2: DATOS PERSONALES */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider">
-                  <User className="h-3.5 w-3.5" />
+                  <UserIcon className="h-3.5 w-3.5" />
                   <h3>Datos Personales</h3>
                 </div>
 
@@ -453,56 +430,6 @@ export default function EditMemberForm({ id }: { id: string }) {
             </div>
           </div>
         </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EditMemberSkeleton() {
-  return (
-    <Card className="mx-auto w-full max-w-6xl border-border/60">
-      <CardHeader className="border-b py-4">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <div className="space-y-1">
-            <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-3 w-60" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <Skeleton className="h-4 w-24" />
-            <div className="grid grid-cols-3 gap-3">
-              <Skeleton className="h-9 col-span-1" />
-              <Skeleton className="h-9 col-span-2" />
-            </div>
-            <Skeleton className="h-px w-full" />
-            <Skeleton className="h-4 w-24" />
-            <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-9" />
-              <Skeleton className="h-9" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-9" />
-              <Skeleton className="h-9" />
-            </div>
-          </div>
-          <div className="space-y-6">
-            <Skeleton className="h-4 w-24" />
-            <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-9" />
-              <Skeleton className="h-9" />
-            </div>
-            <Skeleton className="h-px w-full" />
-            <Skeleton className="h-4 w-24" />
-            <div className="space-y-3">
-              <Skeleton className="h-9" />
-              <Skeleton className="h-9" />
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

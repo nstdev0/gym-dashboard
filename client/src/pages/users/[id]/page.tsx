@@ -2,8 +2,17 @@ import PageHeader from "@/components/ui/PageHeader";
 import UserDetail from "../components/user.detail";
 import { useParams } from "react-router-dom";
 
+import { getUser } from "@/features/users/requests";
+import { useQuery } from "@tanstack/react-query";
+
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getUser(id!),
+    queryKey: ["user", id],
+    enabled: !!id,
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -23,7 +32,7 @@ export default function UserDetailPage() {
           },
         ]}
       />
-      <UserDetail id={id} />
+      <UserDetail user={data} isError={isError} isLoading={isLoading} />
     </div>
   );
 }

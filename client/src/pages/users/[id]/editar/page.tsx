@@ -1,9 +1,18 @@
 import PageHeader from "@/components/ui/PageHeader";
 import EditUserForm from "../../components/edit-user-form";
+import { EditUserSkeleton } from "../../components/edit-user-skeleton";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "@/features/users/requests";
 
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getUser(id!),
+    queryKey: ["user", id],
+    enabled: !!id,
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -19,7 +28,11 @@ export default function EditUserPage() {
           },
         ]}
       />
-      <EditUserForm />
+      {isLoading ? (
+        <EditUserSkeleton />
+      ) : (
+        <EditUserForm user={data} isError={isError} />
+      )}
     </div>
   );
 }

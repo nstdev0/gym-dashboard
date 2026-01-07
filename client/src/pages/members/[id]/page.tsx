@@ -2,9 +2,16 @@ import PageHeader from "@/components/ui/PageHeader";
 import MemberDetail from "../components/member.detail";
 
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { getMember } from "@/features/members/requests";
 
 export default function MemberDetailPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getMember({ id }),
+    queryKey: ["member", id],
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -24,7 +31,7 @@ export default function MemberDetailPage() {
           },
         ]}
       />
-      <MemberDetail id={id} />
+      <MemberDetail member={data} isError={isError} isLoading={isLoading} />
     </div>
   );
 }

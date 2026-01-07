@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,69 +17,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-
 import { useUpdateUser } from "@/features/users/mutations";
-import { getUser } from "@/features/users/requests";
 import {
   userUpdateSchema,
   type UserUpdateInput,
 } from "../../../../../server/src/domain/entities/user";
 
-import { UserPlus, Save, Undo2, Mail, Lock, User, Shield } from "lucide-react";
+import {
+  UserPlus,
+  Save,
+  Undo2,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Shield,
+} from "lucide-react";
 
-export default function EditUserForm() {
+import type { User } from "@server/entities/user";
+
+export default function EditUserForm({
+  user,
+  isError,
+}: {
+  user: User | undefined | null;
+  isError: boolean;
+}) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["user", id],
-    queryFn: () => getUser(id!),
-    enabled: !!id,
-  });
+  // Query removed, using props
 
   const {
     register,
     handleSubmit,
     control,
-    reset,
     trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(userUpdateSchema),
     defaultValues: {
-      firstName: undefined,
-      lastName: undefined,
-      username: undefined,
-      email: undefined,
+      firstName: user?.firstName || undefined,
+      lastName: user?.lastName || undefined,
+      username: user?.username || undefined,
+      email: user?.email || undefined,
       password: "",
-      role: undefined,
-      isActive: undefined,
+      role: user?.role || undefined,
+      isActive: user?.isActive || undefined,
     },
   });
-
-  useEffect(() => {
-    if (user) {
-      reset({
-        firstName: user.firstName || undefined,
-        lastName: user.lastName || undefined,
-        username: user.username || undefined,
-        email: user.email || undefined,
-        role: user.role || undefined,
-        isActive: user.isActive || undefined,
-        password: "",
-      });
-    }
-  }, [user, reset]);
 
   const { mutate, isPending } = useUpdateUser();
 
@@ -100,7 +88,6 @@ export default function EditUserForm() {
     );
   };
 
-  if (isLoading) return <EditUserSkeleton />;
   if (isError)
     return <div className="text-destructive">Error al cargar el usuario</div>;
 
@@ -127,7 +114,7 @@ export default function EditUserForm() {
             {/* Columna Izquierda: Datos Personales */}
             <div className="space-y-5">
               <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider">
-                <User className="h-3.5 w-3.5" />
+                <UserIcon className="h-3.5 w-3.5" />
                 <h3>Datos Personales</h3>
               </div>
 
@@ -158,7 +145,7 @@ export default function EditUserForm() {
                   Nombre de Usuario
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <UserIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     className="h-9 pl-9 text-sm"
                     {...register("username", {
@@ -291,27 +278,6 @@ export default function EditUserForm() {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EditUserSkeleton() {
-  return (
-    <Card className="mx-auto w-full max-w-4xl border-border/60 shadow-md">
-      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-64 mt-2" />
-      </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-2 gap-8">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-        <div className="flex justify-end gap-3">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-32" />
-        </div>
       </CardContent>
     </Card>
   );

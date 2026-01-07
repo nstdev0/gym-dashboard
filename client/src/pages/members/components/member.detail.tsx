@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { getMember } from "@/features/members/requests";
-import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   Ruler,
@@ -22,6 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { Membership } from "@server/entities/membership";
+import type { Member } from "@server/entities/member";
 
 // Helper para formatear fechas
 const formatDate = (date?: Date | string | null) => {
@@ -33,16 +32,15 @@ const formatDate = (date?: Date | string | null) => {
   });
 };
 
-export default function MemberDetail({ id }: { id: string }) {
-  const {
-    data: member,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryFn: () => getMember({ id }),
-    queryKey: ["member", id],
-  });
-
+export default function MemberDetail({
+  member,
+  isError,
+  isLoading,
+}: {
+  member: Member | undefined | null;
+  isError: boolean;
+  isLoading: boolean;
+}) {
   if (isLoading) return <MemberDetailSkeleton />;
 
   if (isError || !member) {

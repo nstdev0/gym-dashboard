@@ -2,8 +2,17 @@ import PageHeader from "@/components/ui/PageHeader";
 import MembershipDetail from "../components/membership.detail";
 import { useParams } from "react-router-dom";
 
+import { getMembership } from "@/features/memberships/requests";
+import { useQuery } from "@tanstack/react-query";
+
 export default function MembershipDetailPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getMembership({ id: id! }),
+    queryKey: ["membership", id],
+    enabled: !!id,
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -23,7 +32,11 @@ export default function MembershipDetailPage() {
           },
         ]}
       />
-      <MembershipDetail id={id} />
+      <MembershipDetail
+        membership={data}
+        isError={isError}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

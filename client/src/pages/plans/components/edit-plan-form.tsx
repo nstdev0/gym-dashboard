@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,19 +11,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/ui/FormError";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-
 import { useUpdatePlan } from "@/features/plans/mutations";
-import { getPlan } from "@/features/plans/requests";
-import {
-  planUpdateSchema,
-  type PlanUpdateInput,
-} from "../../../../../server/src/domain/entities/plan";
 
 import {
   ClipboardList,
@@ -35,48 +26,39 @@ import {
   FileText,
 } from "lucide-react";
 
-export default function EditPlanForm() {
+import {
+  planUpdateSchema,
+  type Plan,
+  type PlanUpdateInput,
+} from "@server/entities/plan";
+
+export default function EditPlanForm({
+  plan,
+  isError,
+}: {
+  plan: Plan | undefined | null;
+  isError: boolean;
+}) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const {
-    data: plan,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["plan", id],
-    queryFn: () => getPlan(id!),
-    enabled: !!id,
-  });
+  // Query removed, using props
 
   const {
     register,
     handleSubmit,
     control,
-    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(planUpdateSchema),
     defaultValues: {
-      name: undefined,
-      description: undefined,
-      price: undefined,
-      durationInDays: undefined,
-      isActive: undefined,
+      name: plan?.name || undefined,
+      description: plan?.description || undefined,
+      price: plan?.price ? Number(plan.price) : undefined,
+      durationInDays: plan?.durationInDays || undefined,
+      isActive: plan?.isActive || undefined,
     },
   });
-
-  useEffect(() => {
-    if (plan) {
-      reset({
-        name: plan.name || undefined,
-        description: plan.description || undefined,
-        price: Number(plan.price) || undefined,
-        durationInDays: plan.durationInDays || undefined,
-        isActive: plan.isActive || undefined,
-      });
-    }
-  }, [plan, reset]);
 
   const { mutate, isPending } = useUpdatePlan();
 
@@ -92,7 +74,6 @@ export default function EditPlanForm() {
     );
   };
 
-  if (isLoading) return <EditPlanSkeleton />;
   if (isError)
     return <div className="text-destructive">Error al cargar el plan</div>;
 
@@ -234,32 +215,6 @@ export default function EditPlanForm() {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EditPlanSkeleton() {
-  return (
-    <Card className="mx-auto w-full max-w-2xl border-border/60 shadow-md">
-      <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-64 mt-2" />
-      </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-        <Skeleton className="h-24 w-full" />
-        <div className="flex justify-end gap-3">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-32" />
-        </div>
       </CardContent>
     </Card>
   );

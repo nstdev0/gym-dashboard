@@ -3,8 +3,18 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useParams } from "react-router-dom";
 import EditMemberForm from "../../components/edit-member-form";
 
+import { getMember } from "@/features/members/requests";
+import { useQuery } from "@tanstack/react-query";
+import { EditMemberSkeleton } from "../../components/edit-member-skeleton";
+
 export default function NewMemberPage() {
   const { id } = useParams<{ id: string }>();
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getMember({ id: id! }),
+    queryKey: ["member", id],
+    enabled: !!id,
+  });
 
   if (!id) return <div>Invalid ID</div>;
 
@@ -20,7 +30,11 @@ export default function NewMemberPage() {
           },
         ]}
       />
-      <EditMemberForm id={id} />
+      {isLoading ? (
+        <EditMemberSkeleton />
+      ) : (
+        <EditMemberForm member={data} isError={isError} />
+      )}
     </div>
   );
 }

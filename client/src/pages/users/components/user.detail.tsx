@@ -8,8 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUser } from "@/features/users/requests";
-import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   Mail,
@@ -29,16 +27,17 @@ const formatDate = (date?: Date | string | null) => {
   });
 };
 
-export default function UserDetail({ id }: { id: string }) {
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryFn: () => getUser(id),
-    queryKey: ["user", id],
-  });
+import type { User } from "@server/entities/user";
 
+export default function UserDetail({
+  user,
+  isError,
+  isLoading,
+}: {
+  user: User | undefined | null;
+  isError: boolean;
+  isLoading: boolean;
+}) {
   if (isLoading) return <UserDetailSkeleton />;
 
   if (isError || !user) {

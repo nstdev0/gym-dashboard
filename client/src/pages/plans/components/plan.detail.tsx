@@ -9,8 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { getPlan } from "@/features/plans/requests";
-import { useQuery } from "@tanstack/react-query";
+import { type Plan } from "@server/entities/plan";
 import {
   Calendar,
   DollarSign,
@@ -30,16 +29,15 @@ const formatDate = (date?: Date | string | null) => {
   });
 };
 
-export default function PlanDetail({ id }: { id: string }) {
-  const {
-    data: plan,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryFn: () => getPlan(id),
-    queryKey: ["plan", id],
-  });
-
+export default function PlanDetail({
+  plan,
+  isError,
+  isLoading,
+}: {
+  plan: Plan | undefined | null;
+  isError: boolean;
+  isLoading: boolean;
+}) {
   if (isLoading) return <PlanDetailSkeleton />;
 
   if (isError || !plan) {
