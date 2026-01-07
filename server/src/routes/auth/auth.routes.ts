@@ -7,11 +7,14 @@ const userRepository = new UserRepository();
 const authService = new AuthService(userRepository);
 const authController = new AuthController(authService);
 
+import { verifyTokenMiddleware } from "@lib/auth/jwt";
+
 const router = Router();
 
 router.post("/sign-in", authController.signIn);
 router.post("/sign-up", authController.register);
 router.post("/sign-out", authController.signOut);
-router.post("/verify-token", authController.verifyToken);
+router.post("/me", authController.verifyToken);
+router.get("/me", verifyTokenMiddleware, authController.me);
 
 export default router;

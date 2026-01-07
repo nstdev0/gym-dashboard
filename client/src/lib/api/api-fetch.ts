@@ -8,13 +8,12 @@ export async function apiFetch<T>(
   path: string,
   init: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem("token");
   const response = await fetch(`${BASE_API_URL}${path}`, {
     method: init.method || "GET",
+    credentials: "include",
     ...init,
     headers: {
       "Content-Type": "Application/Json",
-      Authorization: `Bearer ${token}`,
       ...(init.headers || {}),
     },
   });

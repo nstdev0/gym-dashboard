@@ -7,7 +7,11 @@ const plansRepository = new PlanRepository();
 const plansService = new PlansService(plansRepository);
 const plansController = new PlansController(plansService);
 
+import { verifyTokenMiddleware } from "@lib/auth/jwt";
+
 const router = Router();
+
+router.use(verifyTokenMiddleware);
 
 router.get("/", plansController.findAll);
 

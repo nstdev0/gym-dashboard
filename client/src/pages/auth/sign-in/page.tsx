@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/api-fetch";
+
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -8,7 +8,8 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { CardTitle } from "@/components/ui/card";
 
@@ -18,7 +19,7 @@ type Inputs = {
 };
 
 export default function SignInPage() {
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const {
     register,
@@ -28,18 +29,9 @@ export default function SignInPage() {
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
-      const response: { token: string; role: string } = await apiFetch<{
-        token: string;
-        role: string;
-      }>("/auth/sign-in", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("role", response.role);
-      navigate("/admin/dashboard/inicio");
+      await signIn(data);
     } catch (error) {
-      throw new Error("Error al iniciar sesión", error as Error);
+      console.error("Login failed:", error);
     }
   };
 

@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Toaster } from "sonner";
 import { useTheme } from "./components/ThemeProvider";
@@ -48,7 +48,7 @@ function App() {
   return (
     <div>
       <Toaster richColors theme={theme as "light" | "dark" | "system"} />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense>
         <Routes>
           {/* PUBLIC ROUTES */}
           <Route path="/auth/sign-in" element={<SignInPage />} />
@@ -56,7 +56,7 @@ function App() {
 
           {/* PROTECTED ROUTES */}
           <Route element={<Layout />}>
-            {/* <Route element={<ProtectedRoutes />}> */}
+            <Route element={<ProtectedRoutes allowedRoles={["OWNER", "ADMIN", "STAFF"]} />}>
 
             {/* DASHBOARD ROUTE */}
             <Route path="/admin/dashboard/inicio" element={<DashboardPage />} />
@@ -108,16 +108,13 @@ function App() {
             />
 
             {/* USERS ROUTES */}
+            <Route element={<ProtectedRoutes allowedRoles={["OWNER"]} />}>
             {/* REGISTER USER ROUTE, ONLY OWNER ROLE IS ABLE TO REGISTER A NEW USER */}
             <Route
               path="/admin/dashboard/usuarios/nuevo"
               element={<NewUserPage />}
             />
             <Route path="/admin/dashboard/usuarios" element={<UsersPage />} />
-            <Route
-              path="/admin/dashboard/usuarios/nuevo"
-              element={<NewUserPage />}
-            />
             <Route
               path="/admin/dashboard/usuarios/:id"
               element={<UserDetailPage />}
@@ -126,9 +123,13 @@ function App() {
               path="/admin/dashboard/usuarios/:id/editar"
               element={<EditUserPage />}
             />
-            {/* </Route> */}
+            </Route>
+            </Route>
           </Route>
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="/" element={<Navigate to="/admin/dashboard/inicio" />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard/inicio" />} />
+          <Route path="/admin/dashboard" element={<Navigate to="/admin/dashboard/inicio" />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

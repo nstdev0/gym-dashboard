@@ -7,7 +7,11 @@ const membersRepository = new MemberRepository();
 const membersService = new MembersService(membersRepository);
 const membersController = new MembersController(membersService);
 
+import { verifyTokenMiddleware } from "@lib/auth/jwt";
+
 const router = Router();
+
+router.use(verifyTokenMiddleware);
 
 router.get("/", membersController.findAll);
 

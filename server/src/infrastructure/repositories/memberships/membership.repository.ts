@@ -12,7 +12,7 @@ export class MembershipRepository
   implements IMembershipRepository
 {
   constructor() {
-    super(prisma.membership);
+    super(prisma.membership as any);
   }
 
   async buildQueryFilters(
@@ -53,6 +53,6 @@ export class MembershipRepository
         include: {
             plan: true
         }
-    }) as any; // Cast as any if type mismatch occurs with PrismaPromise vs Promise in specific versions, or refine type mapping
+    }) as any
   }
 }

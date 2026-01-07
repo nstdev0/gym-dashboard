@@ -7,7 +7,11 @@ const userRepository = new UserRepository();
 const usersService = new UsersService(userRepository);
 const usersController = new UsersController(usersService);
 
+import { verifyTokenMiddleware } from "@lib/auth/jwt";
+
 const router = Router();
+
+router.use(verifyTokenMiddleware);
 
 router.get("/", usersController.findAll);
 

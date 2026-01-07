@@ -24,15 +24,17 @@ export function generateToken(payload: string | object | Buffer<ArrayBufferLike>
 }
 
 export function verifyTokenMiddleware(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.headers.authorization;
+    let token = req.cookies.token;
+
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
         return res.status(401).json({ 
-            message: 'Acceso denegado. No se proporcionó el token o el formato es incorrecto.' 
+            message: 'Acceso denegado. No se proporcionó el token.' 
         });
     }
-
-    const token = authHeader.split(' ')[1];
 
     try {
         const decoded = jwt.verify(token, SECRET_KEY);

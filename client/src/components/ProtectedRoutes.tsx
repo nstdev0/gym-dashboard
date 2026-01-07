@@ -1,16 +1,25 @@
 import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-import { useAuth } from "../hooks/auth";
-
-const ProtectedRoutes = ({ redirectPath = "/auth/sign-in" }) => {
-  const { isLogged, isLoading } = useAuth();
+const ProtectedRoutes = ({
+  redirectPath = "/auth/sign-in",
+  allowedRoles,
+}: {
+  redirectPath?: string;
+  allowedRoles?: string[];
+}) => {
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Cargando permisos...</div>;
+    return <div className="flex h-screen w-full items-center justify-center">Cargando permisos...</div>;
   }
 
-  if (!isLogged) {
+  if (!user) {
     return <Navigate to={redirectPath} replace />;
+  }
+
+  if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <Outlet />;

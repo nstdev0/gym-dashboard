@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 import authRouter from "./routes/auth/auth.routes";
 import membersRouter from "./routes/members/member.routes";
@@ -14,15 +15,19 @@ import { errorHandler } from "./middlewares/error-handler.middleware";
 const app = express();
 
 const whiteList = [process.env.FRONTEND_URL || "http://localhost:5173"];
+const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
+const allowedHeaders = ["Content-Type", "Authorization"];
 
 app.use(
   cors({
     origin: whiteList,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: allowedMethods,
+    allowedHeaders: allowedHeaders,
+    credentials: true,
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 
 // Health check route
@@ -37,11 +42,10 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRouter);
 
 // Protected routes
-app.use("/api/members", membersRouter);
-// app.use("/api/members", verifyTokenMiddleware, membersRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/plans", plansRouter);
-app.use("/api/memberships", membershipRouter);
+app.use("/api/members", verifyTokenMiddleware, membersRouter);
+app.use("/api/users", verifyTokenMiddleware, usersRouter);
+app.use("/api/plans", verifyTokenMiddleware, plansRouter);
+app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
 
 // 404 Not found route
 app.use((req, res) => {

@@ -11,7 +11,7 @@ export class PlanRepository
   implements IPlansRepository
 {
   constructor() {
-    super(prisma.plan);
+    super(prisma.plan as any);
   }
 
   async buildQueryFilters(
@@ -35,6 +35,6 @@ export class PlanRepository
   async findByName(name: string): Promise<Plan | null> {
     return await prisma.plan.findFirst({
       where: { name },
-    });
+    }) as any;
   }
 }

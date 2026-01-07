@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { email } from "zod";
 import { RoleEnum } from "../../../../server/src/domain/enums/role.enum"; // Ajusta tu import
 import { capitalizeText } from "../../../../server/src/lib/utils/capitalize-text";
 
@@ -50,3 +50,9 @@ export const userUpdateSchema = userBaseShape.partial().extend({
   password: z.union([z.string().min(6), z.literal("")]).optional(), // Solo si quiere cambiarla
 });
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+
+export const loginSchema = z.object({
+  email: z.email("Email no válido"),
+  password: z.string("Contraseña requerida").min(8, "Mínimo 8 caracteres"),
+});
+export type LoginInput = z.infer<typeof loginSchema>;

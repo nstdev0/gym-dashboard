@@ -1,6 +1,6 @@
-import { generateToken, verifyTokenMiddleware } from "./jwt";
-import { CreateUserDTO } from "../../domain/DTOs/user";
+import { generateToken } from "./jwt";
 import { UserRepository } from "../../infrastructure/repositories/users/user.repository";
+import { UserCreateInput } from "../../domain/entities/user";
 
 export class AuthService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -11,7 +11,7 @@ export class AuthService {
     return token;
   }
 
-  async register(data: CreateUserDTO) {
+  async register(data: UserCreateInput) {
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error("User already exists with this email");
@@ -41,7 +41,7 @@ export class AuthService {
     }
   }
 
-  async signOut(userId: string) {
-    // Implement sign-out logic if needed (e.g., invalidate token)
-  }
+  // async signOut(userId: string) {
+
+  // }
 }
