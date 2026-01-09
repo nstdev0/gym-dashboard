@@ -2,7 +2,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -123,10 +128,10 @@ export default function PlansListingPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <Card className="border-border/60 shadow-sm flex flex-col flex-1 min-h-0">
+      <Card className="border-border/60 shadow-sm flex flex-col flex-1 min-h-0 bg-background">
         <CardHeader>
           {/* BARRA DE FILTROS */}
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex justify-between items-center h-2">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -262,11 +267,11 @@ export default function PlansListingPage() {
 
         {/* FOOTER: PAGINACIÓN */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-end space-x-2 px-4 py-2 border-t mt-auto">
-            <div className="flex-1 text-sm text-muted-foreground">
+          <CardFooter className="flex items-center justify-center px-4 py-4 h-2">
+            <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
               Página {CURRENT_PAGE} de {totalPages}
             </div>
-            <div className="space-x-2">
+            <div className="flex gap-3 items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -284,7 +289,7 @@ export default function PlansListingPage() {
                 Siguiente <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
-          </div>
+          </CardFooter>
         )}
       </Card>
     </div>

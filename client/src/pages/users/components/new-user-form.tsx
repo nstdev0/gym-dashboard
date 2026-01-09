@@ -185,9 +185,9 @@ export default function NewUserForm() {
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="OWNER">Owner</SelectItem>
                           <SelectItem value="ADMIN">Administrador</SelectItem>
                           <SelectItem value="STAFF">Staff</SelectItem>
-                          {/* <SelectItem value="OWNER">Owner</SelectItem> Generally protected */}
                         </SelectContent>
                       </Select>
                     )}

@@ -1,4 +1,4 @@
-import z, { email } from "zod";
+import z from "zod";
 import { RoleEnum } from "../../../../server/src/domain/enums/role.enum"; // Ajusta tu import
 import { capitalizeText } from "../../../../server/src/lib/utils/capitalize-text";
 

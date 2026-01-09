@@ -84,10 +84,7 @@ function App() {
                 path="/admin/dashboard/miembros/:id/editar"
                 element={<EditMemberPage />}
               />
-              <Route
-                path="/admin/dashboard/profile"
-                element={<ProfilePage />}
-              />
+              <Route path="/admin/dashboard/perfil" element={<ProfilePage />} />
               {/* PLANS ROUTES */}
               <Route path="/admin/dashboard/planes" element={<PlansPage />} />
               <Route

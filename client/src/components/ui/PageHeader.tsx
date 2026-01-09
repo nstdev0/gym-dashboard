@@ -13,17 +13,20 @@ export default function PageHeader({
 }: {
   title: string;
   description?: string;
-  buttonProps: buttonProps[];
+  buttonProps?: buttonProps[];
 }) {
   return (
-    <div className="mb-6 border-b border-border pb-4 flex justify-between items-end">
+    <div className="mb-6 border-b border-border pb-4 flex justify-between items-center">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {title}
         </h1>
+        {description && (
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       <div className="flex gap-2">
-        {buttonProps.map((prop, index) => (
+        {buttonProps?.map((prop, index) => (
           <Link key={index} to={prop.to}>
             <Button>{prop.text}</Button>
           </Link>

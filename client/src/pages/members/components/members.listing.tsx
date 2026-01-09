@@ -2,7 +2,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Search,
@@ -39,6 +43,7 @@ import { useDeleteMember } from "@/features/members/mutations";
 import { getMembers } from "@/features/members/requests";
 import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
+import MembersTableSkeleton from "./skeleton";
 
 export default function MembersListingPage() {
   const navigate = useNavigate();
@@ -125,10 +130,10 @@ export default function MembersListingPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <Card className="border-border/60 shadow-sm flex flex-col flex-1 min-h-0">
+      <Card className="border-border/60 shadow-sm flex flex-col flex-1 min-h-0 bg-background">
         <CardHeader>
           {/* BARRA DE FILTROS */}
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex justify-between items-center h-2">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -312,11 +317,11 @@ export default function MembersListingPage() {
 
         {/* FOOTER: PAGINACIÓN */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-end space-x-2 px-4 py-2 border-t mt-auto">
-            <div className="flex-1 text-sm text-muted-foreground">
+          <CardFooter className="flex items-center justify-center px-4 border-t h-2">
+            <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
               Página {CURRENT_PAGE} de {totalPages}
             </div>
-            <div className="space-x-2">
+            <div className="flex gap-3 items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -334,39 +339,9 @@ export default function MembersListingPage() {
                 Siguiente <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
-          </div>
+          </CardFooter>
         )}
       </Card>
-    </div>
-  );
-}
-
-function MembersTableSkeleton() {
-  return (
-    <div className="p-4">
-      <div className="space-y-4">
-        {/* Header row simulation */}
-        <div className="flex items-center justify-between pb-4 border-b">
-          <Skeleton className="h-6 w-50" />
-          <Skeleton className="h-6 w-25" />
-        </div>
-        {/* Rows simulation */}
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center justify-between py-2">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-full" />
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-37.5" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </div>
-            <Skeleton className="h-4 w-25 hidden sm:block" />
-            <Skeleton className="h-4 w-25 hidden md:block" />
-            <Skeleton className="h-6 w-20 rounded-full" />
-            <Skeleton className="h-8 w-8" />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
