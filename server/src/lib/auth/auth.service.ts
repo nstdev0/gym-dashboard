@@ -16,7 +16,7 @@ export class AuthService {
     if (existingUser) {
       throw new Error("User already exists with this email");
     }
-    
+
     const existingUsername = data.username
       ? await this.userRepository.findByUsername(data.username)
       : null;
@@ -34,11 +34,18 @@ export class AuthService {
 
     if (validatedUser) {
       const token = await this.generateToken(validatedUser);
-      const user= await this.userRepository.findByEmail(credentials.email)
-      return {token, role: user!.role};
+      const user = await this.userRepository.findByEmail(credentials.email);
+      return { token, role: user!.role };
     } else {
       throw new Error("Invalid email or password");
     }
+  }
+  async getMe(userId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
   }
 
   // async signOut(userId: string) {

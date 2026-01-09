@@ -146,7 +146,7 @@ export function AppSidebar() {
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={() => navigate("/admin/dashboard/profile")}
+                    onClick={() => navigate("/admin/dashboard/perfil")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

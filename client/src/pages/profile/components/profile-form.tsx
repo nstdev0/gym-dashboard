@@ -27,15 +27,16 @@ import {
 
 import { toast } from "sonner";
 import { useAuth, type User } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileForm({ user }: { user: User }) {
+  const navigate = useNavigate();
   const { checkAuth } = useAuth();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isDirty },
-    reset,
   } = useForm({
     resolver: zodResolver(userUpdateSchema),
     defaultValues: {
@@ -72,8 +73,8 @@ export default function ProfileForm({ user }: { user: User }) {
       {
         onSuccess: async () => {
           toast.success("Perfil actualizado correctamente");
-          await checkAuth(); // Refresh user context
-          reset({ ...cleanData, password: "" }); // Reset form state
+          await checkAuth();
+          navigate("/admin/dashboard/");
         },
         onError: () => {
           toast.error("Error al actualizar el perfil");
@@ -195,9 +196,7 @@ export default function ProfileForm({ user }: { user: User }) {
 
               <div className="p-4 bg-muted/30 rounded-lg border border-border/50 text-xs text-muted-foreground">
                 <p className="font-semibold mb-1">Tu Rol: {user.role}</p>
-                <p>
-                  Los permisos y roles son gestionados por el administrador.
-                </p>
+                <p>Los permisos y roles son gestionados por el propietario.</p>
               </div>
             </div>
           </div>

@@ -75,9 +75,12 @@ export class AuthController {
   });
 
   signOut = asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.body;
-    // await this.authService.signOut(userId);
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
     const apiResponse: ApiResponse<{ message: string }> = {
       isSuccess: true,
       data: { message: "Signed out successfully" },
@@ -86,7 +89,12 @@ export class AuthController {
   });
 
   me = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user;
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ isSuccess: false, message: "Unauthorized" });
+      return;
+    }
+
+    const user = await this.authService.getMe(req.user.id);
     const apiResponse: ApiResponse<any> = {
       isSuccess: true,
       data: user,
