@@ -21,24 +21,19 @@ export class MembershipRepository
     const whereClause: Record<string, unknown> = {};
 
     if (filters.search) {
-      whereClause.OR = [
-        // Search by member name via relationship
-        {
-          member: {
-            OR: [
-              { firstName: { contains: filters.search } },
-              { lastName: { contains: filters.search } },
-              { docNumber: { contains: filters.search } },
-            ]
-          }
-        },
-        // Search by plan name
-        {
-            plan: {
-                name: { contains: filters.search }
-            }
-        }
-      ];
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+
+      if (searchTerms.length > 0) {
+        whereClause.AND = searchTerms.map((term) => ({
+          OR: [
+            { member: { firstName: { contains: term } } },
+            { member: { lastName: { contains: term } } },
+            { member: { email: { contains: term } } },
+            { member: { docNumber: { contains: term } } },
+            { plan: { name: { contains: term } } },
+          ],
+        }));
+      }
     }
 
     return whereClause;
@@ -46,13 +41,13 @@ export class MembershipRepository
 
   findActiveByMemberId(memberId: string): Prisma.PrismaPromise<Membership> {
     return prisma.membership.findFirst({
-        where: {
-            memberId: memberId,
-            status: "ACTIVE"
-        },
-        include: {
-            plan: true
-        }
-    }) as any
+      where: {
+        memberId: memberId,
+        status: "ACTIVE",
+      },
+      include: {
+        plan: true,
+      },
+    }) as any;
   }
 }

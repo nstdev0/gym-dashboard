@@ -14,9 +14,11 @@ import { errorHandler } from "./middlewares/error-handler.middleware";
 
 const app = express();
 
-const whiteList = [process.env.FRONTEND_URL || "http://localhost:5173"];
+const whiteList = [process.env.FRONTEND_URL, "http://localhost:5173", "https://prthmgx3-5173.brs.devtunnels.ms"].filter(Boolean)
 const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
 const allowedHeaders = ["Content-Type", "Authorization"];
+
+app.set("trust proxy", 1);
 
 app.use(
   cors({

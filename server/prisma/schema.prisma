@@ -59,6 +59,8 @@ enum InvoiceStatus {
 model User {
   id String @id @default(cuid())
 
+  image String?
+
   role      Role
   firstName String
   lastName  String?

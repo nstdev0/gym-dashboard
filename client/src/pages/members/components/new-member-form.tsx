@@ -342,13 +342,14 @@ export default function NewMemberForm() {
           </div>
 
           {/* BOTONES */}
-          <div className="flex justify-end gap-3 pt-6 border-t mt-6">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t mt-6">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => navigate(-1)}
               disabled={isPending}
+              className="w-full sm:w-auto"
             >
               <Undo2 className="mr-2 h-4 w-4" />
               Cancelar
@@ -357,7 +358,7 @@ export default function NewMemberForm() {
               type="submit"
               size="sm"
               disabled={isPending}
-              className="min-w-35"
+              className="w-full sm:w-auto min-w-35"
             >
               {isPending ? (
                 "Guardando..."

@@ -1,3 +1,4 @@
+import z from "zod";
 import {
   IPlansRepository,
   PlansFilters,
@@ -20,21 +21,25 @@ export class PlanRepository
     const whereClause: Record<string, unknown> = {};
 
     if (filters.search) {
-      whereClause.OR = [
-        { name: { contains: filters.search } },
-      ];
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+
+      if (searchTerms.length > 0) {
+        whereClause.AND = searchTerms.map((term) => ({
+          name: { contains: term },
+        }));
+      }
     }
-    
+
     if (filters.isActive !== undefined && filters.isActive !== null) {
-        whereClause.isActive = filters.isActive;
+      whereClause.isActive = filters.isActive;
     }
 
     return whereClause;
   }
 
   async findByName(name: string): Promise<Plan | null> {
-    return await prisma.plan.findFirst({
+    return (await prisma.plan.findFirst({
       where: { name },
-    }) as any;
+    })) as any;
   }
 }

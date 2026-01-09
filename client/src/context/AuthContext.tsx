@@ -1,13 +1,23 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import { apiFetch } from "../lib/api/api-fetch";
 import { useNavigate } from "react-router-dom";
 
 export interface User {
   id: string;
   email: string;
-  role: "OWNER" | "ADMIN" | "TRAINER" | "USER"; 
-  firstName?: string;
-  lastName?: string;
+  role: "OWNER" | "ADMIN" | "STAFF";
+  firstName: string;
+  lastName?: string | null;
+  username?: string | null;
+  isActive: boolean;
+  createdAt: Date | string; // Dates might come as strings from JSON
+  updatedAt: Date | string;
 }
 
 interface AuthContextType {
@@ -45,17 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       body: JSON.stringify(formData),
     });
-    
+
     await checkAuth();
-    
+
     navigate("/admin/dashboard/inicio");
   };
 
   const signOut = async () => {
     try {
-        await apiFetch("/auth/sign-out", { method: "POST" });
+      await apiFetch("/auth/sign-out", { method: "POST" });
     } catch (error) {
-        console.error("Error signing out", error);
+      console.error("Error signing out", error);
     }
     setUser(null);
     localStorage.removeItem("role");
@@ -63,7 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signOut, checkAuth }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, signIn, signOut, checkAuth }}
+    >
       {!isLoading && children}
     </AuthContext.Provider>
   );

@@ -7,12 +7,12 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden h-full w-full">
+      <div className="flex flex-1 flex-col h-screen w-full overflow-hidden">
         <AppHeader />
-        <main className="flex-1 overflow-hidden p-4">
+        <main className="flex-1 overflow-y-auto p-4">
           <Outlet />
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }

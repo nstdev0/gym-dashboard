@@ -21,11 +21,21 @@ export class MemberRepository
     const whereClause: Record<string, unknown> = {};
 
     if (filters.search) {
-      whereClause.OR = [
-        { firstName: { contains: filters.search } },
-        { lastName: { contains: filters.search } },
-        { email: { contains: filters.search } },
-      ];
+      const searchTerms = filters.search
+        .trim()
+        .split(/\s+/) // Regex para separar por uno o más espacios
+        .filter(Boolean);
+
+      if (searchTerms.length > 0) {
+        whereClause.AND = searchTerms.map((term) => ({
+          OR: [
+            { firstName: { contains: term } },
+            { lastName: { contains: term } },
+            { docNumber: { contains: term } },
+            { email: { contains: term } },
+          ],
+        }));
+      }
     }
 
     return whereClause;

@@ -21,15 +21,17 @@ export class UserRepository
     const whereClause: Record<string, unknown> = {};
 
     if (filters.search) {
-      whereClause.OR = [
-        { firstName: { contains: filters.search } },
-        { lastName: { contains: filters.search } },
-        { email: { contains: filters.search } },
-      ];
-    }
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
-    if (filters.role) {
-      whereClause.role = filters.role;
+      if (searchTerms.length > 0) {
+        whereClause.AND = searchTerms.map((term) => ({
+          OR: [
+            { firstName: { contains: term } },
+            { lastName: { contains: term } },
+            { email: { contains: term } },
+          ],
+        }));
+      }
     }
 
     return whereClause;
@@ -49,12 +51,19 @@ export class UserRepository
     return user as User;
   }
 
-  async validate(credentials: { email: string; password: string }): Promise<User | null> {
+  async validate(credentials: {
+    email: string;
+    password: string;
+  }): Promise<User | null> {
     const user = await prisma.user.findUnique({
       where: { email: credentials.email },
     });
 
-    if (user && user.password && (await bcrypt.compare(credentials.password, user.password))) {
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(credentials.password, user.password))
+    ) {
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword as User;
     }

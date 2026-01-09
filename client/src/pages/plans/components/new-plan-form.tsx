@@ -27,7 +27,7 @@ import {
   Undo2,
   DollarSign,
   Clock,
-  FileText
+  FileText,
 } from "lucide-react";
 
 export default function NewPlanForm() {
@@ -77,7 +77,6 @@ export default function NewPlanForm() {
 
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
           {/* Nombre y Precio */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -115,7 +114,7 @@ export default function NewPlanForm() {
 
           {/* Duración y Estado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="durationInDays" className="text-xs">
                 Duración (Días) <span className="text-destructive">*</span>
               </Label>
@@ -132,30 +131,31 @@ export default function NewPlanForm() {
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/5">
-                <div className="space-y-0.5">
-                  <Label className="text-sm">Plan Activo</Label>
-                  <p className="text-[10px] text-muted-foreground">
-                    Visible para nuevas suscripciones.
-                  </p>
-                </div>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="scale-90"
-                    />
-                  )}
-                />
+              <div className="space-y-0.5">
+                <Label className="text-sm">Plan Activo</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Visible para nuevas suscripciones.
+                </p>
+              </div>
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="scale-90"
+                  />
+                )}
+              />
             </div>
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-xs">
-              Descripción <span className="text-muted-foreground">(Opcional)</span>
+              Descripción{" "}
+              <span className="text-muted-foreground">(Opcional)</span>
             </Label>
             <Textarea
               className="resize-none text-sm"
@@ -169,13 +169,14 @@ export default function NewPlanForm() {
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => navigate(-1)}
               disabled={isPending}
+              className="w-full sm:w-auto"
             >
               <Undo2 className="mr-2 h-4 w-4" />
               Cancelar
@@ -184,7 +185,7 @@ export default function NewPlanForm() {
               type="submit"
               size="sm"
               disabled={isPending}
-              className="min-w-32"
+              className="w-full sm:w-auto min-w-32"
             >
               {isPending ? (
                 "Guardando..."

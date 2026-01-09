@@ -36,6 +36,8 @@ import {
 
 import { useDeletePlan } from "@/features/plans/mutations";
 import { getPlans } from "@/features/plans/requests";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function PlansListingPage() {
   const navigate = useNavigate();
@@ -65,15 +67,32 @@ export default function PlansListingPage() {
   const totalRecords = response?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  const handleSearch = (term: string) => {
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      if (term) newParams.set("search", term);
-      else newParams.delete("search");
-      newParams.set("page", "1");
-      return newParams;
-    });
-  };
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || ""
+  );
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    if (debouncedSearch !== currentSearch) {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (debouncedSearch) newParams.set("search", debouncedSearch);
+        else newParams.delete("search");
+        newParams.set("page", "1");
+        return newParams;
+      });
+    }
+  }, [debouncedSearch, setSearchParams, searchParams]);
+
+  // Sync state if URL changes externally
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    if (urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {
@@ -111,10 +130,10 @@ export default function PlansListingPage() {
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar plan..."
+                placeholder="Buscar por nombre de plan..."
                 className="pl-9 bg-muted/20"
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
@@ -138,10 +157,10 @@ export default function PlansListingPage() {
               <p className="text-sm max-w-xs mx-auto mt-1">
                 No hay resultados para tu búsqueda o aún no has creado planes.
               </p>
-              {search && (
+              {searchTerm && (
                 <Button
                   variant="link"
-                  onClick={() => handleSearch("")}
+                  onClick={() => setSearchTerm("")}
                   className="mt-2"
                 >
                   Limpiar búsqueda

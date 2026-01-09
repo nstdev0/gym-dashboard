@@ -37,6 +37,9 @@ import {
 
 import { useDeleteUser } from "@/features/users/mutations";
 import { getUsers } from "@/features/users/requests";
+import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function UsersListingPage() {
   const navigate = useNavigate();
@@ -45,6 +48,9 @@ export default function UsersListingPage() {
   const CURRENT_PAGE = parseInt(searchParams.get("page") || "1");
   const PAGE_SIZE = parseInt(searchParams.get("pageSize") || "10");
   const search = searchParams.get("search") || "";
+
+  const { user } = useAuth();
+  const selfId = user?.id;
 
   const request = {
     filters: { search },
@@ -66,15 +72,32 @@ export default function UsersListingPage() {
   const totalRecords = response?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
-  const handleSearch = (term: string) => {
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      if (term) newParams.set("search", term);
-      else newParams.delete("search");
-      newParams.set("page", "1");
-      return newParams;
-    });
-  };
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || ""
+  );
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    if (debouncedSearch !== currentSearch) {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (debouncedSearch) newParams.set("search", debouncedSearch);
+        else newParams.delete("search");
+        newParams.set("page", "1");
+        return newParams;
+      });
+    }
+  }, [debouncedSearch, setSearchParams, searchParams]);
+
+  // Sync state if URL changes externally (e.g. navigation)
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    if (urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Only checking searchParams changes
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {
@@ -116,10 +139,10 @@ export default function UsersListingPage() {
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre o email..."
+                placeholder="Buscar por nombres o email..."
                 className="pl-9 bg-muted/20"
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
@@ -143,10 +166,10 @@ export default function UsersListingPage() {
               <p className="text-sm max-w-xs mx-auto mt-1">
                 No hay resultados para tu búsqueda o aún no has creado usuarios.
               </p>
-              {search && (
+              {searchTerm && (
                 <Button
                   variant="link"
-                  onClick={() => handleSearch("")}
+                  onClick={() => setSearchTerm("")}
                   className="mt-2"
                 >
                   Limpiar búsqueda
@@ -166,94 +189,96 @@ export default function UsersListingPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.map((user, index) => (
-                  <TableRow key={user.id} className="hover:bg-muted/5 group">
-                    <TableCell className="text-center text-muted-foreground text-xs">
-                      {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
-                    </TableCell>
+                {records
+                  .filter((user) => user.id !== selfId)
+                  .map((user, index) => (
+                    <TableRow key={user.id} className="hover:bg-muted/5 group">
+                      <TableCell className="text-center text-muted-foreground text-xs">
+                        {(CURRENT_PAGE - 1) * PAGE_SIZE + index + 1}
+                      </TableCell>
 
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border">
-                          <AvatarFallback className="text-xs bg-primary/5 text-primary font-medium">
-                            {getInitials(user.firstName, user.lastName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm">
-                            {user.firstName} {user.lastName}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            @{user.username || "-"}
-                          </span>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border">
+                            <AvatarFallback className="text-xs bg-primary/5 text-primary font-medium">
+                              {getInitials(user.firstName, user.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-sm">
+                              {user.firstName} {user.lastName}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              @{user.username || "-"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {user.email}
-                      </span>
-                    </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {user.email}
+                        </span>
+                      </TableCell>
 
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className="font-normal text-xs uppercase bg-secondary/50"
-                      >
-                        {user.role}
-                      </Badge>
-                    </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="font-normal text-xs uppercase bg-secondary/50"
+                        >
+                          {user.role}
+                        </Badge>
+                      </TableCell>
 
-                    <TableCell>
-                      <Badge
-                        variant={user.isActive ? "default" : "secondary"}
-                        className={`text-[10px] px-2 py-0.5 ${
-                          user.isActive
-                            ? "bg-green-600 hover:bg-green-700"
-                            : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                        }`}
-                      >
-                        {user.isActive ? "ACTIVO" : "INACTIVO"}
-                      </Badge>
-                    </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={user.isActive ? "default" : "secondary"}
+                          className={`text-[10px] px-2 py-0.5 ${
+                            user.isActive
+                              ? "bg-green-600 hover:bg-green-700"
+                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                          }`}
+                        >
+                          {user.isActive ? "ACTIVO" : "INACTIVO"}
+                        </Badge>
+                      </TableCell>
 
-                    <TableCell className="text-right pr-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <span className="sr-only">Abrir menú</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => navigate(`${user.id}`)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => navigate(`${user.id}/editar`)}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => handleDelete(user.id)}
-                            disabled={isDeleting}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <TableCell className="text-right pr-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <span className="sr-only">Abrir menú</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => navigate(`${user.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" /> Ver detalle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => navigate(`${user.id}/editar`)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(user.id)}
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           )}

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -9,7 +8,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
-import { Link } from "react-router-dom";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { CardTitle } from "@/components/ui/card";
 
@@ -36,7 +34,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="m-auto w-full h-dvh flex items-center justify-center">
+    <div className="m-auto w-full h-dvh flex items-center justify-center px-6">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-md space-y-6"
@@ -73,11 +71,11 @@ export default function SignInPage() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
-            <Link to="/auth/sign-up" className="w-full text-center text-sm">
+            {/* <Link to="/auth/sign-up" className="w-full text-center text-sm">
               {isSubmitting
                 ? "Registrarse..."
                 : "¿No tienes una cuenta? Registrate aqui"}
-            </Link>
+            </Link> */}
           </FieldGroup>
         </FieldSet>
       </form>

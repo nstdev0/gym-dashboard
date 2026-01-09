@@ -7,102 +7,99 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/ui/FormError";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useUpdateUser } from "@/features/users/mutations";
 import {
   userUpdateSchema,
   type UserUpdateInput,
 } from "../../../../../server/src/domain/entities/user";
-
 import {
-  UserPlus,
   Save,
-  Undo2,
   Mail,
   Lock,
   User as UserIcon,
   Shield,
+  Loader2,
 } from "lucide-react";
 
-import type { User } from "@server/entities/user";
+import { toast } from "sonner";
+import { useAuth, type User } from "@/context/AuthContext";
 
-export default function EditUserForm({
-  user,
-  isError,
-}: {
-  user: User | undefined | null;
-  isError: boolean;
-}) {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-
-  // Query removed, using props
+export default function ProfileForm({ user }: { user: User }) {
+  const { checkAuth } = useAuth();
 
   const {
     register,
     handleSubmit,
-    control,
-    trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
+    reset,
   } = useForm({
     resolver: zodResolver(userUpdateSchema),
     defaultValues: {
-      firstName: user?.firstName || undefined,
-      lastName: user?.lastName || undefined,
-      username: user?.username || undefined,
-      email: user?.email || undefined,
+      firstName: user.firstName || undefined,
+      lastName: user.lastName || undefined,
+      username: user.username || undefined,
+      email: user.email || undefined,
       password: "",
-      role: user?.role || undefined,
-      isActive: user?.isActive || undefined,
+      role: user.role || undefined,
+      isActive: true, // Always active for self-edit
     },
   });
 
   const { mutate, isPending } = useUpdateUser();
 
   const onSubmit = (data: UserUpdateInput) => {
-    if (!id) return;
+    if (!user?.id) return;
+
+    // Filter out empty password if not changed
     if (!data.password) {
       delete data.password;
     }
 
+    // Prevent changing role or status manually in profile
+    // Although the backend should enforce this, we also sanitize here
+    const cleanData = {
+      ...data,
+      role: user.role, // Keep original role
+      isActive: true, // Keep active
+    };
+
     mutate(
-      { id, data },
+      { id: user.id, data: cleanData },
       {
-        onSuccess: () => {
-          navigate("/admin/dashboard/usuarios");
+        onSuccess: async () => {
+          toast.success("Perfil actualizado correctamente");
+          await checkAuth(); // Refresh user context
+          reset({ ...cleanData, password: "" }); // Reset form state
+        },
+        onError: () => {
+          toast.error("Error al actualizar el perfil");
         },
       }
     );
   };
 
-  if (isError)
-    return <div className="text-destructive">Error al cargar el usuario</div>;
+  if (!user)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
 
   return (
     <Card className="mx-auto w-full max-w-4xl border-border/60 shadow-md">
       <CardHeader className="border-b border-border/40 bg-muted/20 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-full text-primary">
-            <UserPlus className="h-5 w-5" />
+            <UserIcon className="h-5 w-5" />
           </div>
           <div>
-            <CardTitle className="text-lg">Editar Usuario</CardTitle>
+            <CardTitle className="text-lg">Mi Perfil</CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              Modifica los datos del usuario. Dejar contraseña en blanco para
-              mantener la actual.
+              Administra tu información personal y de acceso.
             </CardDescription>
           </div>
         </div>
@@ -161,7 +158,7 @@ export default function EditUserForm({
             <div className="space-y-5">
               <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider">
                 <Shield className="h-3.5 w-3.5" />
-                <h3>Credenciales y Acceso</h3>
+                <h3>Credenciales</h3>
               </div>
 
               <div className="space-y-2">
@@ -174,6 +171,7 @@ export default function EditUserForm({
                     className="h-9 pl-9 text-sm"
                     type="email"
                     {...register("email")}
+                    disabled // Email usually shouldn't be changed easily in profile without verification? Let's allow edit but user should know implications. Wait, let's keep it editable for now as per other form.
                   />
                 </div>
                 <ErrorMessage message={errors.email?.message} />
@@ -195,85 +193,32 @@ export default function EditUserForm({
                 <ErrorMessage message={errors.password?.message} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <Label className="text-xs">Rol</Label>
-                  <Controller
-                    control={control}
-                    name="role"
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          trigger("role");
-                        }}
-                        value={field.value || undefined}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Seleccionar rol" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="OWNER">Propietario</SelectItem>
-                          <SelectItem value="ADMIN">Administrador</SelectItem>
-                          <SelectItem value="STAFF">Staff</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <ErrorMessage message={errors.role?.message} />
-                </div>
-
-                <div className="flex flex-col justify-end pb-1.5">
-                  <div className="flex items-center justify-between rounded-lg border p-2 bg-muted/5 h-9">
-                    <Label
-                      className="text-xs cursor-pointer"
-                      htmlFor="isActive-switch"
-                    >
-                      Activo
-                    </Label>
-                    <Controller
-                      control={control}
-                      name="isActive"
-                      render={({ field }) => (
-                        <Switch
-                          id="isActive-switch"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="scale-75"
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
+              <div className="p-4 bg-muted/30 rounded-lg border border-border/50 text-xs text-muted-foreground">
+                <p className="font-semibold mb-1">Tu Rol: {user.role}</p>
+                <p>
+                  Los permisos y roles son gestionados por el administrador.
+                </p>
               </div>
             </div>
           </div>
 
           {/* Botones */}
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t mt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(-1)}
-              disabled={isPending}
-              className="w-full sm:w-auto"
-            >
-              <Undo2 className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-6 border-t mt-2">
             <Button
               type="submit"
               size="sm"
-              disabled={isPending}
+              disabled={isPending || !isDirty}
               className="w-full sm:w-auto min-w-32"
             >
               {isPending ? (
-                "Guardando..."
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Actualizar
+                  Guardar Cambios
                 </>
               )}
             </Button>

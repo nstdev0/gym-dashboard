@@ -9,8 +9,9 @@ export default function MemberDetailPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data, isLoading, isError } = useQuery({
-    queryFn: () => getMember({ id }),
+    queryFn: () => getMember({ id: id! }),
     queryKey: ["member", id],
+    enabled: !!id,
   });
 
   if (!id) return <div>Invalid ID</div>;
