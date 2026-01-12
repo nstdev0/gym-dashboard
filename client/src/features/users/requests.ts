@@ -1,8 +1,4 @@
-import type {
-  User,
-  UserCreateInput,
-  UserUpdateInput,
-} from "@server/entities/user";
+import type { User, CreateUserDto, UpdateUserDto } from "@/DTOs/users.dto";
 import { apiFetch } from "../../lib/api/api-fetch";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
 
@@ -31,7 +27,7 @@ export const getUser = async (id: string) => {
   return apiFetch<User>(`/users/${id}`);
 };
 
-export const createUser = async (data: UserCreateInput) => {
+export const createUser = async (data: CreateUserDto) => {
   return apiFetch<User>("/users", {
     method: "POST",
     body: JSON.stringify(data),
@@ -43,7 +39,7 @@ export const updateUser = async ({
   data,
 }: {
   id: string;
-  data: UserUpdateInput;
+  data: UpdateUserDto;
 }) => {
   return apiFetch<User>(`/users/${id}`, {
     method: "PUT",

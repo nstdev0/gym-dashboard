@@ -19,8 +19,8 @@ import {
   CreditCard,
   AlertCircle,
 } from "lucide-react";
-import type { Membership } from "@server/entities/membership";
-import type { Member } from "@server/entities/member";
+import type { Membership } from "@/DTOs/memberships.dto";
+import type { Member } from "@/DTOs/members.dto";
 
 // Helper para formatear fechas
 const formatDate = (date?: Date | string | null) => {

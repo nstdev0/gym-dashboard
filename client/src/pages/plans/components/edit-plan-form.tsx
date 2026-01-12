@@ -26,11 +26,8 @@ import {
   FileText,
 } from "lucide-react";
 
-import {
-  planUpdateSchema,
-  type Plan,
-  type PlanUpdateInput,
-} from "@server/entities/plan";
+import { planUpdateSchema } from "@/features/plans/use-cases/plan.schema";
+import type { Plan, UpdatePlanDto } from "@/DTOs/plans.dto";
 
 export default function EditPlanForm({
   plan,
@@ -62,7 +59,7 @@ export default function EditPlanForm({
 
   const { mutate, isPending } = useUpdatePlan();
 
-  const onSubmit = (data: PlanUpdateInput) => {
+  const onSubmit = (data: UpdatePlanDto) => {
     if (!id) return;
     mutate(
       { id, data },
@@ -210,7 +207,7 @@ export default function EditPlanForm({
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Actualizar Plan
+                  Actualizar
                 </>
               )}
             </Button>

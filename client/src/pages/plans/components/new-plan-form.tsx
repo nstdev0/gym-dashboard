@@ -16,10 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useCreatePlan } from "@/features/plans/mutations";
-import {
-  planCreateSchema,
-  type PlanCreateInput,
-} from "../../../../../server/src/domain/entities/plan";
+import { planCreateSchema } from "@/features/plans/use-cases/plan.schema";
+import type { CreatePlanDto } from "@/DTOs/plans.dto";
 
 import {
   ClipboardList,
@@ -51,7 +49,7 @@ export default function NewPlanForm() {
 
   const { mutate, isPending } = useCreatePlan();
 
-  const onSubmit = (data: PlanCreateInput) => {
+  const onSubmit = (data: CreatePlanDto) => {
     mutate(data, {
       onSuccess: () => {
         navigate("/admin/dashboard/planes");

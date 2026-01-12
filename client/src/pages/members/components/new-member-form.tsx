@@ -26,7 +26,7 @@ import { useCreateMember } from "@/features/members/mutations";
 import {
   memberCreateSchema,
   type MemberCreateInput,
-} from "./../../../../../server/src/domain/entities/member";
+} from "@/features/members/use-cases/member.schema";
 
 import {
   User,

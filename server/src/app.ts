@@ -18,6 +18,7 @@ const app = express();
 const whiteList = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://prthmgx3-5173.brs.devtunnels.ms",
 ].filter(Boolean);
 const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
@@ -55,7 +56,7 @@ app.use("/api/plans", verifyTokenMiddleware, plansRouter);
 app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
 
 // 404 Not found route (API only)
-app.use("/api/*", (req, res) => {
+app.use("/api", (req, res) => {
   res.status(404).json({
     success: false,
     message: "Route not found",

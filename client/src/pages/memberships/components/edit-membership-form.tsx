@@ -26,13 +26,10 @@ import { useUpdateMembership } from "@/features/memberships/mutations";
 import { getPlans } from "@/features/plans/requests";
 
 import { CreditCard, Save, Undo2, Calendar, DollarSign } from "lucide-react";
-import type { Plan } from "@server/entities/plan";
 
-import {
-  membershipUpdateSchema,
-  type Membership,
-  type MembershipUpdateInput,
-} from "@server/entities/membership";
+import { membershipUpdateSchema } from "@/features/memberships/use-cases/membership.schema";
+import type { Membership, UpdateMembershipDto } from "@/DTOs/memberships.dto";
+import type { Plan } from "@/DTOs/plans.dto";
 
 export default function EditMembershipForm({
   membership,
@@ -77,7 +74,7 @@ export default function EditMembershipForm({
 
   const { mutate, isPending } = useUpdateMembership();
 
-  const onSubmit = (data: MembershipUpdateInput) => {
+  const onSubmit = (data: UpdateMembershipDto) => {
     if (!id) return;
     mutate(
       { id, data },

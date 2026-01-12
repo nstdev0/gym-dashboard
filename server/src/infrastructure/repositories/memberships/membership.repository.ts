@@ -35,7 +35,6 @@ export class MembershipRepository
         }));
       }
     }
-
     return whereClause;
   }
 

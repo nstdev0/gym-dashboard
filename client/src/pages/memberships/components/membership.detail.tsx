@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import type { Membership } from "@server/entities/membership";
+import type { Membership } from "@/DTOs/memberships.dto";
 import {
   Calendar,
   CreditCard,

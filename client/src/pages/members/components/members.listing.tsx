@@ -44,7 +44,7 @@ import { getMembers } from "@/features/members/requests";
 import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import MembersTableSkeleton from "./skeleton";
-import type { Membership } from "@server/entities/membership";
+import type { Membership } from "@/DTOs/memberships.dto";
 
 export default function MembersListingPage() {
   const navigate = useNavigate();

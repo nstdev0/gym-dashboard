@@ -1,8 +1,8 @@
 import type {
   Member,
-  MemberCreateInput,
-  MemberUpdateInput,
-} from "@server/entities/member";
+  CreateMemberDto,
+  UpdateMemberDto,
+} from "@/DTOs/members.dto";
 import { type ApiResponse } from "../../../../server/src/types/api";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
 import { apiFetch } from "../../lib/api/api-fetch";
@@ -30,7 +30,7 @@ export async function getMember(request: { id: string }): Promise<Member> {
   return data;
 }
 
-export async function createMember(data: MemberCreateInput) {
+export async function createMember(data: CreateMemberDto) {
   const response: ApiResponse<Member> = await apiFetch(`/members`, {
     method: "POST",
     body: JSON.stringify(data),
@@ -39,7 +39,7 @@ export async function createMember(data: MemberCreateInput) {
   return response;
 }
 
-export async function updateMember(id: string, data: MemberUpdateInput) {
+export async function updateMember(id: string, data: UpdateMemberDto) {
   const response: ApiResponse<Member> = await apiFetch(`/members/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),

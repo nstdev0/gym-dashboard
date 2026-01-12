@@ -1,8 +1,4 @@
-import type {
-  Plan,
-  PlanCreateInput,
-  PlanUpdateInput,
-} from "@server/entities/plan";
+import type { Plan, CreatePlanDto, UpdatePlanDto } from "@/DTOs/plans.dto";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
 import { apiFetch } from "../../lib/api/api-fetch";
 
@@ -31,7 +27,7 @@ export const getPlan = async (id: string) => {
   return apiFetch<Plan>(`/plans/${id}`);
 };
 
-export const createPlan = async (data: PlanCreateInput) => {
+export const createPlan = async (data: CreatePlanDto) => {
   return apiFetch<Plan>("/plans", {
     method: "POST",
     body: JSON.stringify(data),
@@ -43,7 +39,7 @@ export const updatePlan = async ({
   data,
 }: {
   id: string;
-  data: PlanUpdateInput;
+  data: UpdatePlanDto;
 }) => {
   return apiFetch<Plan>(`/plans/${id}`, {
     method: "PUT",

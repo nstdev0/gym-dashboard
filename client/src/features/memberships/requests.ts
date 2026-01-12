@@ -1,9 +1,9 @@
-import { apiFetch } from "../../lib/api/api-fetch";
 import type {
   Membership,
-  MembershipCreateInput,
-  MembershipUpdateInput,
-} from "../../../../server/src/domain/entities/membership";
+  CreateMembershipDto,
+  UpdateMembershipDto,
+} from "@/DTOs/memberships.dto";
+import { apiFetch } from "../../lib/api/api-fetch";
 import type { IPageableResult } from "../../../../server/src/application/common/pagination";
 
 export const getMemberships = async (params: {
@@ -29,7 +29,7 @@ export const getMembership = async ({ id }: { id: string }) => {
   return data;
 };
 
-export const createMembership = async (data: MembershipCreateInput) => {
+export const createMembership = async (data: CreateMembershipDto) => {
   const response = await apiFetch<Membership>("/memberships", {
     method: "POST",
     body: JSON.stringify(data),
@@ -42,7 +42,7 @@ export const updateMembership = async ({
   data,
 }: {
   id: string;
-  data: MembershipUpdateInput;
+  data: UpdateMembershipDto;
 }) => {
   return apiFetch<Membership>(`/memberships/${id}`, {
     method: "PUT",

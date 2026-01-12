@@ -22,10 +22,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useCreateUser } from "@/features/users/mutations";
-import {
-  userCreateSchema,
-  type UserCreateInput,
-} from "../../../../../server/src/domain/entities/user";
+import { userCreateSchema } from "@/features/users/use-cases/user.schema";
+import type { CreateUserDto } from "@/DTOs/users.dto";
 
 import { UserPlus, Save, Undo2, Mail, Lock, User, Shield } from "lucide-react";
 
@@ -52,7 +50,7 @@ export default function NewUserForm() {
 
   const { mutate, isPending } = useCreateUser();
 
-  const onSubmit = (data: UserCreateInput) => {
+  const onSubmit = (data: CreateUserDto) => {
     mutate(data, {
       onSuccess: () => {
         navigate("/admin/dashboard/usuarios");

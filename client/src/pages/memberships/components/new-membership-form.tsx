@@ -26,13 +26,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useCreateMembership } from "@/features/memberships/mutations";
 import { getMembers } from "@/features/members/requests";
 import { getPlans } from "@/features/plans/requests";
-import {
-  membershipCreateSchema,
-  type MembershipCreateInput,
-} from "../../../../../server/src/domain/entities/membership";
+import { membershipCreateSchema } from "@/features/memberships/use-cases/membership.schema";
+import type { CreateMembershipDto } from "@/DTOs/memberships.dto";
 
 import { CreditCard, Save, Undo2, Calendar, DollarSign } from "lucide-react";
-import type { Plan } from "@server/entities/plan";
+import type { Plan } from "@/DTOs/plans.dto";
 
 export default function NewMembershipForm() {
   const navigate = useNavigate();
@@ -67,7 +65,7 @@ export default function NewMembershipForm() {
 
   const { mutate, isPending } = useCreateMembership();
 
-  const onSubmit = (data: MembershipCreateInput) => {
+  const onSubmit = (data: CreateMembershipDto) => {
     mutate(data, {
       onSuccess: () => {
         navigate("/admin/dashboard/membresias");

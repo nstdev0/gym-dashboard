@@ -36,11 +36,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-import {
-  memberUpdateSchema,
-  type Member,
-  type MemberUpdateInput,
-} from "@server/entities/member";
+import { memberUpdateSchema } from "@/features/members/use-cases/member.schema";
+import type { Member, UpdateMemberDto } from "@/DTOs/members.dto";
 
 export default function EditMemberForm({
   member,
@@ -79,7 +76,7 @@ export default function EditMemberForm({
 
   const { mutate: updateMember, isPending } = useUpdateMember();
 
-  const onSubmit: SubmitHandler<MemberUpdateInput> = (data) => {
+  const onSubmit: SubmitHandler<UpdateMemberDto> = (data) => {
     if (!id) return;
     updateMember(
       { id, data },
@@ -391,7 +388,7 @@ export default function EditMemberForm({
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Actualizar Plan
+                  Actualizar
                 </>
               )}
             </Button>

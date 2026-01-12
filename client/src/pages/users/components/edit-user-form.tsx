@@ -22,10 +22,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUpdateUser } from "@/features/users/mutations";
-import {
-  userUpdateSchema,
-  type UserUpdateInput,
-} from "../../../../../server/src/domain/entities/user";
+import { userUpdateSchema } from "@/features/users/use-cases/user.schema";
+import type { UpdateUserDto } from "@/DTOs/users.dto";
 
 import {
   UserPlus,
@@ -37,7 +35,7 @@ import {
   Shield,
 } from "lucide-react";
 
-import type { User } from "@server/entities/user";
+import type { User } from "@/DTOs/users.dto";
 
 export default function EditUserForm({
   user,
@@ -72,7 +70,7 @@ export default function EditUserForm({
 
   const { mutate, isPending } = useUpdateUser();
 
-  const onSubmit = (data: UserUpdateInput) => {
+  const onSubmit = (data: UpdateUserDto) => {
     if (!id) return;
     if (!data.password) {
       delete data.password;
