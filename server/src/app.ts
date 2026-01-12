@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
@@ -14,7 +15,11 @@ import { errorHandler } from "./middlewares/error-handler.middleware";
 
 const app = express();
 
-const whiteList = [process.env.FRONTEND_URL, "http://localhost:5173", "https://prthmgx3-5173.brs.devtunnels.ms"].filter(Boolean)
+const whiteList = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "https://prthmgx3-5173.brs.devtunnels.ms",
+].filter(Boolean);
 const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
 const allowedHeaders = ["Content-Type", "Authorization"];
 
@@ -49,13 +54,26 @@ app.use("/api/users", verifyTokenMiddleware, usersRouter);
 app.use("/api/plans", verifyTokenMiddleware, plansRouter);
 app.use("/api/memberships", verifyTokenMiddleware, membershipRouter);
 
-// 404 Not found route
-app.use((req, res) => {
+// 404 Not found route (API only)
+app.use("/api/*", (req, res) => {
   res.status(404).json({
     success: false,
     message: "Route not found",
   });
 });
+
+// Serve frontend in production or fallback
+if (
+  process.env.NODE_ENV === "production" ||
+  process.env.SERVE_STATIC === "true"
+) {
+  const clientDistPath = path.join(__dirname, "../../client/dist");
+  app.use(express.static(clientDistPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 // Global Error Handler
 app.use(errorHandler);

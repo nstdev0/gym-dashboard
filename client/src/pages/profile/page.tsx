@@ -8,7 +8,7 @@ export default function ProfilePage() {
 
   if (isLoading) return <ProfileFormSkeleton />;
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full space-y-4 ">
       <PageHeader title="Mi Perfil" description="Información personal" />
       <ProfileForm user={user!} />
     </div>

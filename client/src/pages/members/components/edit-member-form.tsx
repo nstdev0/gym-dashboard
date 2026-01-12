@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useDeleteMember, useUpdateMember } from "@/features/members/mutations";
+import { useUpdateMember } from "@/features/members/mutations";
 
 import {
   User as UserIcon,
@@ -33,7 +33,6 @@ import {
   Mail,
   Save,
   Undo2,
-  Trash2,
   AlertCircle,
 } from "lucide-react";
 
@@ -58,7 +57,7 @@ export default function EditMemberForm({
     handleSubmit,
     control,
     trigger,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(memberUpdateSchema),
     defaultValues: {
@@ -78,8 +77,7 @@ export default function EditMemberForm({
     },
   });
 
-  const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
-  const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
+  const { mutate: updateMember, isPending } = useUpdateMember();
 
   const onSubmit: SubmitHandler<MemberUpdateInput> = (data) => {
     if (!id) return;
@@ -88,23 +86,6 @@ export default function EditMemberForm({
       { onSuccess: () => navigate("/admin/dashboard/miembros") }
     );
   };
-
-  const handleDelete = () => {
-    if (!id) return;
-    if (
-      window.confirm(
-        "¿Estás seguro de eliminar este miembro? Esta acción no se puede deshacer."
-      )
-    ) {
-      deleteMember(
-        { id },
-        { onSuccess: () => navigate("/admin/dashboard/miembros") }
-      );
-    }
-  };
-
-  // --- ESTADO DE CARGA (SKELETON) ---
-  // Managed by parent component
 
   // --- ESTADO DE ERROR ---
   if (isError || !member)
@@ -386,48 +367,34 @@ export default function EditMemberForm({
             </div>
           </div>
 
-          {/* BARRA DE ACCIONES INFERIOR */}
-          <div className="flex justify-between items-center pt-6 border-t mt-6">
-            {/* Botón Eliminar a la izquierda (Seguridad) */}
+          {/* Botones */}
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t">
             <Button
               type="button"
-              variant="destructive"
+              variant="outline"
               size="sm"
-              onClick={handleDelete}
-              disabled={isDeleting || isSubmitting}
+              onClick={() => navigate(-1)}
+              disabled={isPending}
+              className="w-full sm:w-auto"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? "..." : "Eliminar"}
+              <Undo2 className="mr-2 h-4 w-4" />
+              Cancelar
             </Button>
-
-            {/* Acciones principales a la derecha */}
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(-1)}
-                disabled={isUpdating || isSubmitting}
-              >
-                <Undo2 className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isUpdating || isSubmitting}
-                className="min-w-35"
-              >
-                {isUpdating || isSubmitting ? (
-                  "Guardando..."
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="w-full sm:w-auto min-w-32"
+            >
+              {isPending ? (
+                "Guardando..."
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Actualizar Plan
+                </>
+              )}
+            </Button>
           </div>
         </form>
       </CardContent>

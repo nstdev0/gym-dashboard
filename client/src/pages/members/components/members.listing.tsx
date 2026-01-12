@@ -44,6 +44,7 @@ import { getMembers } from "@/features/members/requests";
 import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import MembersTableSkeleton from "./skeleton";
+import type { Membership } from "@server/entities/membership";
 
 export default function MembersListingPage() {
   const navigate = useNavigate();
@@ -192,7 +193,7 @@ export default function MembersListingPage() {
                 {records.map((member, index) => {
                   const plans =
                     member.memberships
-                      ?.map((m) => m.plan?.name)
+                      ?.map((m: Membership) => m.plan?.name)
                       .filter(Boolean) || [];
                   const activePlan = plans.length > 0 ? plans[0] : null;
 
