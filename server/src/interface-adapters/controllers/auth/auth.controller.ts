@@ -11,7 +11,7 @@ config();
 const secret: string = process.env.SECRET_KEY || "";
 
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   register = asyncHandler(async (req: Request, res: Response) => {
     const parsedData = userCreateSchema.safeParse(req.body);
@@ -37,6 +37,7 @@ export class AuthController {
   });
 
   signIn = asyncHandler(async (req: Request, res: Response) => {
+
     const parsedData = loginSchema.safeParse(req.body);
     if (!parsedData.success) {
       res.status(400).json(parsedData.error);
@@ -64,13 +65,23 @@ export class AuthController {
       };
       res.status(200).json(apiResponse);
     } catch (error: any) {
-      res.status(401).json({
-        isSuccess: false,
-        error: {
-          code: "INVALID_CREDENTIALS",
-          description: error.message || "Invalid credentials",
-        },
-      });
+      if (error.message === "Invalid email or password") {
+        res.status(401).json({
+          isSuccess: false,
+          error: {
+            code: "INVALID_CREDENTIALS",
+            description: "Invalid email or password",
+          },
+        });
+      } else {
+        res.status(500).json({
+          isSuccess: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            description: error.message || "Internal server error",
+          },
+        });
+      }
     }
   });
 

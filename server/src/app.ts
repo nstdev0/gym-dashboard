@@ -20,7 +20,7 @@ const whiteList = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://prthmgx3-5173.brs.devtunnels.ms",
-].filter(Boolean);
+].filter((url) => url !== undefined);
 const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
 const allowedHeaders = ["Content-Type", "Authorization"];
 

@@ -9,8 +9,7 @@ import bcrypt from "bcrypt";
 
 export class UserRepository
   extends BaseRepository<User, UsersFilters>
-  implements IUsersRepository
-{
+  implements IUsersRepository {
   constructor() {
     super(prisma.user);
   }
@@ -41,33 +40,40 @@ export class UserRepository
     const user = await prisma.user.findUnique({
       where: { email },
     });
-    return user as User;
+    return user;
   }
 
   async findByUsername(username: string): Promise<User | null> {
     const user = await prisma.user.findFirst({
       where: { username },
     });
-    return user as User;
+    return user;
   }
 
   async validate(credentials: {
     email: string;
     password: string;
   }): Promise<User | null> {
-    const user = await prisma.user.findUnique({
-      where: { email: credentials.email },
-    });
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: credentials.email },
+      });
 
-    if (
-      user &&
-      user.password &&
-      (await bcrypt.compare(credentials.password, user.password))
-    ) {
+      if (!user) {
+        throw new Error("El usuario no existe");
+      }
+
+      const isPasswordValid = user.password && await bcrypt.compare(credentials.password, user.password);
+
+      if (!isPasswordValid) {
+        throw new Error("La contraseña es incorrecta");
+      }
+
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword as User;
+    } catch (error) {
+      console.error("Error validating user:", error);
+      throw error;
     }
-
-    return null;
   }
 }

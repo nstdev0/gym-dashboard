@@ -3,7 +3,7 @@ import { UserRepository } from "../../infrastructure/repositories/users/user.rep
 import { UserCreateInput } from "../../domain/entities/user";
 
 export class AuthService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async generateToken(user: any) {
     if (!user) throw new Error("Cannot generate token for null user");
