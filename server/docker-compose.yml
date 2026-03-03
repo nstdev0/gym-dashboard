@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # 1. Nombre del servicio corregido
+  mysql:
+    # 2. Buena práctica: Fijar la versión en lugar de 'latest'
+    image: mysql:8.0
+    container_name: gym-dashboard-local
+    restart: unless-stopped
+    environment:
+      # 3. CRÍTICO: MySQL exige definir la contraseña root al iniciar
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # 4. Healthcheck optimizado por seguridad
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app_network
+
+volumes:
+  mysql_data:
+    name: gym-dashboard-local_data_volume
+
+networks:
+  app_network:
+    name: app_backend_network
+    driver: bridge
