@@ -9,8 +9,18 @@ node_modules/
 !.env.example
 
 # Build outputs
-/build
-/dist
+build/
+dist/
+dist-ssr/
+
+# Testing
+coverage/
+
+# Caches & Tooling
+.eslintcache
+.vite/
+*.tsbuildinfo
+
 
 # Generated files
 /src/generated
